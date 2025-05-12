@@ -73,10 +73,13 @@
             position: absolute; top: 0; left: 0; bottom: 0; right: 0; 
             width: 100%; height: 100%; 
             border: none; 
-            pointer-events: auto; /* Explicitly allow pointer events on the iframe */
+            pointer-events: auto; 
         }
         
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); }
+        .modal { display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); }
+        #infoModal { z-index: 1000; }
+        #playerModal { z-index: 1010; } /* Higher z-index for player modal */
+
         .modal-content { 
             background-color: #181818; border-radius: 8px;
             width: 95vw; max-width: 900px; 
@@ -707,17 +710,25 @@
 
         infoModalPlayButton.addEventListener('click', () => {
             if (!currentInfoModalData) return;
+            
+            const playData = { ...currentInfoModalData }; // Clone data
+
             closeModal(infoModal); 
-            if (currentInfoModalData.type === 'movie') {
-                playMovie(currentInfoModalData.id, currentInfoModalData.title || currentInfoModalData.original_name);
-            } else if (currentInfoModalData.type === 'tv') {
-                currentTvShow.id = currentInfoModalData.id;
-                currentTvShow.name = currentInfoModalData.name || currentInfoModalData.original_name;
-                currentTvShow.season = parseInt(infoModalSeasonSelect.value) || 1;
-                currentTvShow.episode = parseInt(infoModalEpisodeSelect.value) || 1;
-                updateAndShowTVControlsInPlayerModal(); 
-                playTvShow();
-            }
+            
+            // Use a timeout to ensure infoModal is fully closed and DOM is settled
+            setTimeout(() => {
+                if (playData.type === 'movie') {
+                    playMovie(playData.id, playData.title || playData.original_name);
+                } else if (playData.type === 'tv') {
+                    currentTvShow.id = playData.id;
+                    currentTvShow.name = playData.name || playData.original_name;
+                    // Use the season/episode values that were selected in the info modal
+                    currentTvShow.season = parseInt(infoModalSeasonSelect.value) || 1;
+                    currentTvShow.episode = parseInt(infoModalEpisodeSelect.value) || 1;
+                    updateAndShowTVControlsInPlayerModal(); 
+                    playTvShow();
+                }
+            }, 100); // 100ms delay
         });
         
         async function updateAndShowTVControlsInPlayerModal() { 
