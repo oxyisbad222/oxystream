@@ -16,12 +16,9 @@
             background-color: #141414;
             color: #e5e5e5;
         }
-        body.modal-open {
-            overflow: hidden !important; 
-            position: fixed; 
-            width: 100%;
-            height: 100%;
-        }
+        /* body.modal-open class is no longer used for position:fixed scroll lock */
+        /* Overflow will be handled directly on html and body elements via JS */
+
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #232323; }
         ::-webkit-scrollbar-thumb { background: #e50914; border-radius: 4px; }
@@ -78,7 +75,7 @@
         
         .modal { display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); }
         #infoModal { z-index: 1000; }
-        #playerModal { z-index: 1010; } /* Higher z-index for player modal */
+        #playerModal { z-index: 1010; } 
 
         .modal-content { 
             background-color: #181818; border-radius: 8px;
@@ -418,10 +415,7 @@
         let currentSearchResults = [];
         let currentSearchQuery = '';
         let originalBodyOverflow = '';
-        let originalBodyPosition = '';
-        let originalBodyWidth = '';
-        let originalBodyHeight = '';
-        let originalHtmlOverflow = '';
+        let originalHtmlOverflow = ''; // Store html overflow as well
         let currentInfoModalData = null;
 
 
@@ -711,24 +705,22 @@
         infoModalPlayButton.addEventListener('click', () => {
             if (!currentInfoModalData) return;
             
-            const playData = { ...currentInfoModalData }; // Clone data
+            const playData = { ...currentInfoModalData }; 
 
             closeModal(infoModal); 
             
-            // Use a timeout to ensure infoModal is fully closed and DOM is settled
             setTimeout(() => {
                 if (playData.type === 'movie') {
                     playMovie(playData.id, playData.title || playData.original_name);
                 } else if (playData.type === 'tv') {
                     currentTvShow.id = playData.id;
                     currentTvShow.name = playData.name || playData.original_name;
-                    // Use the season/episode values that were selected in the info modal
                     currentTvShow.season = parseInt(infoModalSeasonSelect.value) || 1;
                     currentTvShow.episode = parseInt(infoModalEpisodeSelect.value) || 1;
                     updateAndShowTVControlsInPlayerModal(); 
                     playTvShow();
                 }
-            }, 100); // 100ms delay
+            }, 50); // Reduced delay slightly, can be adjusted
         });
         
         async function updateAndShowTVControlsInPlayerModal() { 
@@ -800,13 +792,10 @@
 
         function openModal(modalElement) {
             originalBodyOverflow = document.body.style.overflow;
-            originalBodyPosition = document.body.style.position;
-            originalBodyWidth = document.body.style.width;
-            originalBodyHeight = document.body.style.height;
             originalHtmlOverflow = document.documentElement.style.overflow;
 
             document.documentElement.style.overflow = 'hidden';
-            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
             modalElement.style.display = "block";
         }
 
@@ -814,12 +803,8 @@
             modalElement.style.display = "none";
             if (modalElement === playerModal) playerContainer.innerHTML = ""; 
             
-            document.body.classList.remove('modal-open');
-            document.documentElement.style.overflow = originalHtmlOverflow;
             if (infoModal.style.display === 'none' && playerModal.style.display === 'none') {
-                 document.body.style.position = originalBodyPosition;
-                 document.body.style.width = originalBodyWidth;
-                 document.body.style.height = originalBodyHeight;
+                 document.documentElement.style.overflow = originalHtmlOverflow;
                  document.body.style.overflow = originalBodyOverflow; 
             }
             
