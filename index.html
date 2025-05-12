@@ -3,445 +3,521 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OxyStream</title>
+    <title>SkyeMovie</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #E50914; /* Netflix Red */
-            --secondary-color: #141414; /* Netflix Black */
-            --card-bg-color: #222222;
-            --text-color: #FFFFFF;
-            --text-muted-color: #a0aec0; /* Tailwind gray-500 */
-            --hover-color: #B20710; /* Darker Netflix Red */
-        }
-
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--secondary-color);
-            color: var(--text-color);
-            margin: 0;
+            background-color: #141414; /* Netflix dark background */
         }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
+        /* Custom scrollbar for modal content (WebKit browsers) */
+        #detail-modal-content::-webkit-scrollbar {
             width: 8px;
-            height: 8px;
         }
-        ::-webkit-scrollbar-track {
-            background: var(--secondary-color);
-        }
-        ::-webkit-scrollbar-thumb {
-            background-color: var(--primary-color);
+        #detail-modal-content::-webkit-scrollbar-track {
+            background: #2d2d2d;
             border-radius: 10px;
-            border: 2px solid var(--secondary-color);
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background-color: var(--hover-color);
+        #detail-modal-content::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 10px;
         }
-
-        .oxy-header {
-            background-color: rgba(20, 20, 20, 0.9);
-            backdrop-filter: blur(10px);
+        #detail-modal-content::-webkit-scrollbar-thumb:hover {
+            background: #E50914; /* Netflix Red */
         }
-
-        .oxy-title {
-            color: var(--primary-color);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        /* For Firefox */
+        #detail-modal-content {
+            scrollbar-width: thin;
+            scrollbar-color: #555 #2d2d2d;
         }
 
-        .oxy-input {
-            background-color: #333;
-            border: 1px solid #555;
-            color: var(--text-color);
+        .nav-link.active {
+            color: #E50914; /* Netflix Red */
+            font-weight: 600;
         }
-        .oxy-input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.3);
-        }
-        .oxy-input:disabled {
-            background-color: #444;
-            cursor: not-allowed;
-        }
-
-        .oxy-btn {
-            background-color: var(--primary-color);
-            transition: background-color 0.3s ease;
-        }
-        .oxy-btn:hover {
-            background-color: var(--hover-color);
-        }
-         .oxy-btn:disabled {
-            background-color: #555;
-            cursor: not-allowed;
-        }
-
-
-        .oxy-btn-secondary {
-            background-color: #4F4F4F;
-        }
-        .oxy-btn-secondary:hover {
-            background-color: #6A6A6A;
-        }
-
-        .movie-card {
-            background-color: var(--card-bg-color);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            overflow: hidden;
-        }
-        .movie-card:hover {
-            transform: translateY(-8px) scale(1.03);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
-        }
-        .movie-card img {
+        .card-aspect {
             aspect-ratio: 2 / 3;
-            object-fit: cover;
         }
-        .movie-card-title {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            min-height: 2.5em;
+        .modal-iframe-aspect {
+            aspect-ratio: 16 / 9;
         }
-
-        .section-title {
-            color: var(--text-color);
-            border-bottom: 2px solid var(--primary-color);
+        /* Basic styling for custom message box */
+        #message-box {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
         }
-        
-        #iframePlayer {
-            border: 3px solid var(--primary-color);
-            box-shadow: 0 0 20px rgba(229, 9, 20, 0.3);
-        }
-
-        /* Loading Spinner */
-        .spinner {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            border: 8px solid;
-            border-color: #E50914 #0000; /* Red and transparent */
-            animation: spinner-animation 1.2s infinite linear;
-        }
-        @keyframes spinner-animation {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-        .message-box {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            color: white;
-            z-index: 2000;
-            font-size: 1rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        .message-box-enter {
             opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transform: translateY(-20px) translateX(-50%);
         }
-        .message-box.show {
+        .message-box-leave {
+            opacity: 0;
+            transform: translateY(-20px) translateX(-50%);
+        }
+        .message-box-active {
             opacity: 1;
-            visibility: visible;
+            transform: translateY(0) translateX(-50%);
         }
-        .message-box.error {
-            background-color: var(--primary-color);
-        }
-        .message-box.success {
-            background-color: #28a745; /* Green for success */
-        }
-
     </style>
 </head>
-<body class="bg-secondary-color text-text-color">
+<body class="text-white">
 
-    <header class="oxy-header sticky top-0 z-50 p-4 shadow-lg">
-        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center">
-            <h1 class="oxy-title text-3xl sm:text-4xl mb-4 sm:mb-0 cursor-pointer" onclick="showTrendingView()">OxyStream</h1>
-            <div class="flex w-full sm:w-auto">
-                <input type="text" id="searchInput" class="oxy-input p-2 rounded-l-md flex-grow focus:outline-none" placeholder="Search by title (disabled)" disabled>
-                <button id="searchButton" class="oxy-btn text-white p-2 rounded-r-md" disabled>Search</button>
+    <header class="bg-black bg-opacity-80 backdrop-blur-md p-4 fixed top-0 left-0 right-0 z-40 shadow-lg">
+        <div class="container mx-auto flex flex-wrap justify-between items-center">
+            <h1 id="logo" class="text-3xl font-black text-red-600 cursor-pointer order-1 sm:order-1">SkyeMovie</h1>
+            <nav class="space-x-2 sm:space-x-4 order-3 sm:order-2 w-full sm:w-auto mt-2 sm:mt-0 flex justify-center sm:justify-start">
+                <button data-page="movies" class="nav-link text-white hover:text-red-500 px-2 py-1 sm:px-3 sm:py-2 rounded-md text-sm font-medium">Movies</button>
+                <button data-page="tv" class="nav-link text-white hover:text-red-500 px-2 py-1 sm:px-3 sm:py-2 rounded-md text-sm font-medium">TV Shows</button>
+            </nav>
+            <div class="w-full sm:w-1/3 min-w-[180px] order-2 sm:order-3 mt-2 sm:mt-0">
+                <input type="search" id="search-input" placeholder="Search titles (min 3 chars)..." class="bg-neutral-700 text-white placeholder-gray-400 w-full px-4 py-2 rounded-full focus:ring-2 focus:ring-red-500 focus:outline-none text-sm">
             </div>
         </div>
     </header>
 
-    <main class="container mx-auto p-4">
-        <div id="loadingIndicator" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-[1000]" style="display: none;">
-            <div class="spinner"></div>
+    <main id="app-content" class="pt-36 sm:pt-28 p-4 md:p-8">
+        <div id="loading-spinner" class="text-center py-10 hidden">
+            <svg class="animate-spin h-12 w-12 text-red-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-white mt-3 text-lg">Loading...</p>
         </div>
 
-        <div id="messageBox" class="message-box"></div>
-
-        <button id="backButton" class="oxy-btn-secondary text-white py-2 px-4 rounded-md mb-6 hidden" onclick="handleBack()">
-            &larr; Back
-        </button>
-
-        <section id="trendingSection">
-            <h2 class="section-title text-2xl font-semibold mb-6 pb-2">Trending TV Shows</h2>
-            <div id="trendingGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        <section id="movies-discover-view" class="hidden">
+            <h2 class="text-2xl sm:text-3xl font-bold text-white mb-6">Discover Movies</h2>
+            <div id="movies-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
                 </div>
+            <div id="movies-pagination" class="mt-8 text-center space-x-2"></div>
         </section>
 
-        <section id="contentDisplaySection" class="hidden mt-6">
-            <h2 id="contentTitle" class="section-title text-2xl font-semibold mb-4 pb-2">Now Playing</h2>
-            <div id="tvControls" class="mb-4 hidden flex-wrap gap-2 items-center">
-                 <label for="seasonSelect" class="text-sm font-medium">Season:</label>
-                 <select id="seasonSelect" class="oxy-select p-2 rounded-md bg-card-bg-color text-text-color w-auto"></select>
-                 <label for="episodeSelect" class="text-sm font-medium">Episode:</label>
-                 <select id="episodeSelect" class="oxy-select p-2 rounded-md bg-card-bg-color text-text-color w-auto"></select>
-                 <button id="loadTvEpisodeButton" class="oxy-btn text-white py-2 px-3 rounded-md">Load Episode</button>
+        <section id="tv-shows-discover-view" class="hidden">
+            <h2 class="text-2xl sm:text-3xl font-bold text-white mb-6">Discover TV Shows</h2>
+            <div id="tv-shows-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                </div>
+            <div id="tv-shows-pagination" class="mt-8 text-center space-x-2"></div>
+        </section>
+
+        <section id="search-results-view" class="hidden">
+            <h2 class="text-2xl sm:text-3xl font-bold text-white mb-6">Search Results for "<span id="search-query-display" class="text-red-500"></span>"</h2>
+            <div>
+                <h3 class="text-xl sm:text-2xl font-semibold text-white my-4 border-b border-neutral-700 pb-2">Movies</h3>
+                <div id="search-movies-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6"></div>
+                <p id="search-movies-no-results" class="text-gray-400 hidden mt-4">No movies found matching your query.</p>
             </div>
-            <div class="aspect-w-16 aspect-h-9">
-                <iframe id="iframePlayer" class="w-full h-full rounded-lg" frameborder="0" allowfullscreen></iframe>
+            <div class="mt-8">
+                <h3 class="text-xl sm:text-2xl font-semibold text-white my-4 border-b border-neutral-700 pb-2">TV Shows</h3>
+                <div id="search-tv-shows-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6"></div>
+                <p id="search-tv-shows-no-results" class="text-gray-400 hidden mt-4">No TV shows found matching your query.</p>
             </div>
         </section>
     </main>
 
-    <footer class="text-center p-6 mt-8 border-t border-gray-700">
-        <p class="text-text-muted-color">&copy; <span id="currentYear"></span> OxyStream. All rights reserved. API by moviesapi.to</p>
-    </footer>
+    <div id="detail-modal" class="fixed inset-0 bg-black bg-opacity-90 hidden items-center justify-center z-50 p-4">
+        <div class="bg-neutral-800 rounded-lg shadow-xl w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl max-h-[95vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-neutral-700">
+                <h3 id="detail-modal-title" class="text-xl font-semibold text-white">Details</h3>
+                <button id="close-modal-button" class="text-gray-300 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+            <div id="detail-modal-content" class="p-2 sm:p-4 overflow-y-auto flex-grow">
+                </div>
+        </div>
+    </div>
+
+    <div id="message-box" class="fixed top-24 left-1/2 bg-red-600 text-white p-3 px-5 rounded-md shadow-lg z-[100] message-box-enter">
+        <span id="message-box-text"></span>
+    </div>
+
 
     <script>
         // API Configuration
-        const API_BASE_URL = 'https://moviesapi.to'; // New API Base URL
-
-        // Color constants for placeholders
-        const PLACEHOLDER_BG_COLOR = '222222';
-        const PLACEHOLDER_TEXT_COLOR = 'E50914';
+        const BASE_DISCOVER_API_URL = "https://moviesapi.to/api";
+        const BASE_CONTENT_URL = "https://moviesapi.club"; // Assuming HTTPS works, or change to HTTP if necessary
+        const RESULTS_PER_PAGE = 18; // Adjusted for better grid layout
 
         // DOM Elements
-        const searchInput = document.getElementById('searchInput');
-        const searchButton = document.getElementById('searchButton');
-        const backButton = document.getElementById('backButton');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const messageBox = document.getElementById('messageBox');
-
-        const trendingSection = document.getElementById('trendingSection');
-        const trendingGrid = document.getElementById('trendingGrid');
+        const logo = document.getElementById('logo');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const searchInput = document.getElementById('search-input');
+        const appContent = document.getElementById('app-content');
+        const loadingSpinner = document.getElementById('loading-spinner');
         
-        const contentDisplaySection = document.getElementById('contentDisplaySection');
-        const contentTitle = document.getElementById('contentTitle');
-        const iframePlayer = document.getElementById('iframePlayer');
-        const tvControls = document.getElementById('tvControls');
-        const seasonSelect = document.getElementById('seasonSelect');
-        const episodeSelect = document.getElementById('episodeSelect');
-        const loadTvEpisodeButton = document.getElementById('loadTvEpisodeButton');
+        const moviesDiscoverView = document.getElementById('movies-discover-view');
+        const moviesGrid = document.getElementById('movies-grid');
+        const moviesPaginationContainer = document.getElementById('movies-pagination');
 
+        const tvShowsDiscoverView = document.getElementById('tv-shows-discover-view');
+        const tvShowsGrid = document.getElementById('tv-shows-grid');
+        const tvShowsPaginationContainer = document.getElementById('tv-shows-pagination');
 
-        // State Management
-        let currentView = 'trending';
-        let previousView = 'trending';
-        let currentMediaItem = null; // Stores the current movie/tv item from discover for context
+        const searchResultsView = document.getElementById('search-results-view');
+        const searchQueryDisplay = document.getElementById('search-query-display');
+        const searchMoviesGrid = document.getElementById('search-movies-grid');
+        const searchMoviesNoResults = document.getElementById('search-movies-no-results');
+        const searchTvShowsGrid = document.getElementById('search-tv-shows-grid');
+        const searchTvShowsNoResults = document.getElementById('search-tv-shows-no-results');
 
-        // --- Utility Functions ---
-        function showLoading() { loadingIndicator.style.display = 'flex'; }
-        function hideLoading() { loadingIndicator.style.display = 'none'; }
+        const detailModal = document.getElementById('detail-modal');
+        const detailModalTitle = document.getElementById('detail-modal-title');
+        const detailModalContent = document.getElementById('detail-modal-content');
+        const closeModalButton = document.getElementById('close-modal-button');
 
-        function showMessage(message, type = 'error', duration = 4000) {
-            messageBox.textContent = message;
-            messageBox.className = `message-box ${type} show`;
-            setTimeout(() => { messageBox.classList.remove('show'); }, duration);
+        const messageBox = document.getElementById('message-box');
+        const messageBoxText = document.getElementById('message-box-text');
+
+        // State
+        let currentView = 'movies';
+        let currentPageMovies = 1;
+        let totalPagesMovies = 1;
+        let currentPageTvShows = 1;
+        let totalPagesTvShows = 1;
+        let currentSearchTerm = '';
+
+        // --- UTILITY FUNCTIONS ---
+        function showLoading() { loadingSpinner.classList.remove('hidden'); }
+        function hideLoading() { loadingSpinner.classList.add('hidden'); }
+
+        function showView(viewElement) {
+            [moviesDiscoverView, tvShowsDiscoverView, searchResultsView].forEach(v => v.classList.add('hidden'));
+            if (viewElement) viewElement.classList.remove('hidden');
         }
 
-        function updateView(viewToShow) {
-            previousView = currentView;
-            currentView = viewToShow;
-
-            trendingSection.classList.add('hidden');
-            contentDisplaySection.classList.add('hidden');
-            backButton.classList.add('hidden');
-
-            window.scrollTo(0, 0);
-
-            switch (viewToShow) {
-                case 'trending':
-                    trendingSection.classList.remove('hidden');
-                    break;
-                case 'content':
-                    contentDisplaySection.classList.remove('hidden');
-                    backButton.classList.remove('hidden');
-                    break;
-            }
+        function getPlaceholderUrl(width, height, text = "No Image") {
+            return `https://placehold.co/${width}x${height}/1F1F1F/777777?text=${encodeURIComponent(text)}&font=Inter`;
         }
 
-        async function fetchData(url, errorMessagePrefix = 'Failed to fetch data') {
-            showLoading();
-            let response;
+        function showMessage(message, duration = 3000) {
+            messageBoxText.textContent = message;
+            messageBox.classList.remove('message-box-enter', 'message-box-leave', 'hidden');
+            messageBox.classList.add('message-box-active');
+            setTimeout(() => {
+                messageBox.classList.remove('message-box-active');
+                messageBox.classList.add('message-box-leave');
+                setTimeout(() => messageBox.classList.add('hidden'), 300); // Wait for animation
+            }, duration);
+        }
+        
+        async function fetchApi(url) {
             try {
-                response = await fetch(url, { mode: 'cors' });
+                const response = await fetch(url);
                 if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ message: `API returned status ${response.status}: ${response.statusText || 'No additional error message provided.'}` }));
-                    throw new Error(`${errorMessagePrefix}: ${errorData.message || `HTTP error ${response.status}`}`);
+                    console.error("API Error:", response.status, await response.text());
+                    showMessage(`Error: ${response.status}. Could not fetch data.`);
+                    return null;
                 }
                 return await response.json();
             } catch (error) {
-                if (error instanceof TypeError && error.message === 'Failed to fetch') {
-                    console.error(`[${errorMessagePrefix}] Network Error: "${error.message}". Potential causes: Internet issue, DNS failure, API server down/unresponsive (${url}), or CORS policy. Check browser's Network tab.`);
-                } else {
-                    console.error(`[${errorMessagePrefix}] Full error object:`, error);
-                    console.error(`[${errorMessagePrefix}] Error name: ${error.name}, Message: ${error.message}`);
-                }
-                if (response) {
-                    console.error(`[${errorMessagePrefix}] HTTP Status from server: ${response.status} ${response.statusText}`);
-                }
-
-                let displayMessage = `${errorMessagePrefix}. Check connection or try later. Details in console.`;
-                if (error.message) {
-                    const prefixPattern = `${errorMessagePrefix}: `;
-                    let apiSpecificMessage = error.message.startsWith(prefixPattern) ? error.message.substring(prefixPattern.length) : error.message;
-                    if (apiSpecificMessage === "Failed to fetch") {
-                         displayMessage = `${errorMessagePrefix}: Network error or API unreachable. Check internet and try again. API service might be down or CORS issue (see console).`;
-                    } else if (apiSpecificMessage === "{}") {
-                         displayMessage = `${errorMessagePrefix}: API returned an unclear error. Check console.`;
-                    } else {
-                        displayMessage = error.message.startsWith(prefixPattern) ? error.message : `${errorMessagePrefix}: ${apiSpecificMessage}`;
-                    }
-                }
-                showMessage(displayMessage);
+                console.error("Fetch Error:", error);
+                showMessage("Network error or API unavailable.");
                 return null;
-            } finally {
-                hideLoading();
             }
         }
 
-        // --- Rendering Functions ---
-        function createMediaCard(item, mediaType) {
+        // --- RENDERING FUNCTIONS ---
+        function createItemCard(item, type) {
             const card = document.createElement('div');
-            card.className = 'movie-card rounded-lg shadow-md cursor-pointer flex flex-col';
+            card.className = 'bg-neutral-800 rounded-lg shadow-lg overflow-hidden cursor-pointer transform hover:scale-105 transition-transform duration-200 ease-in-out flex flex-col';
             
-            // Assumption: The discover API provides 'poster_path' or 'backdrop_path' relative to a base image URL,
-            // or a full 'image' URL. For moviesapi.to, it's often direct image links in 'poster' or 'backdrop'.
-            // Let's assume 'poster' or 'backdrop' field exists and is a full URL.
-            // If not, this needs adjustment based on actual API response.
-            // A common pattern is TMDB-like, where you get a path and prepend a base URL.
-            // For now, I'll try `item.poster` then `item.backdrop`, then a placeholder.
-            // The actual field names from moviesapi.to/api/discover/* need to be verified.
-            // Let's tentatively use `item.poster_path` and assume a TMDB-like structure for image paths if `item.image` isn't direct.
-            // For now, I'll use a generic placeholder as the exact image field is unknown.
-            // A common field name is `poster_url` or `thumbnail_url` or just `image`.
-            // Let's assume the API returns a field named `image` with the full URL.
-            const imageUrl = item.image || item.poster || item.backdrop_path || `https://placehold.co/400x600/${PLACEHOLDER_BG_COLOR}/${PLACEHOLDER_TEXT_COLOR}?text=No+Image`;
-            const errorImage = `https://placehold.co/400x600/${PLACEHOLDER_BG_COLOR}/${PLACEHOLDER_TEXT_COLOR}?text=Error`;
+            const posterUrl = item.poster && item.poster !== "N/A" ? item.poster : getPlaceholderUrl(300, 450, item.title);
+            
+            // Sanitize title to prevent XSS if it were ever used in a vulnerable way (good practice)
+            const safeTitle = item.title ? String(item.title).replace(/</g, "&lt;").replace(/>/g, "&gt;") : "Untitled";
+            const year = item.year || 'N/A';
 
             card.innerHTML = `
-                <img src="${imageUrl}" alt="${item.title}" class="w-full h-auto rounded-t-lg" onerror="this.onerror=null;this.src='${errorImage}';">
+                <div class="w-full card-aspect bg-neutral-700">
+                    <img src="${posterUrl}" alt="${safeTitle}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='${getPlaceholderUrl(300,450,safeTitle)}';">
+                </div>
                 <div class="p-3 flex flex-col flex-grow">
-                    <h3 class="text-md font-semibold movie-card-title text-ellipsis overflow-hidden">${item.title || 'Untitled'}</h3>
-                    ${item.year ? `<p class="text-xs text-text-muted-color mt-auto">(${item.year})</p>` : ''}
+                    <h3 class="text-sm sm:text-md font-semibold text-white truncate" title="${safeTitle}">${safeTitle}</h3>
+                    <p class="text-xs text-gray-400 mt-1">${year}</p>
                 </div>
             `;
-            // Store mediaType with the item if not already present
-            const itemWithtype = {...item, media_type: mediaType };
-            card.addEventListener('click', () => showContentInIframe(itemWithtype));
+            card.addEventListener('click', () => openDetailModal(item.id, type, safeTitle, posterUrl, item));
             return card;
         }
 
-        function displayMedia(items, containerElement, mediaType) {
-            containerElement.innerHTML = '';
-            if (!items || items.length === 0) {
-                containerElement.innerHTML = `<p class="col-span-full text-center text-text-muted-color p-8">No content available at the moment.</p>`;
-                return;
-            }
-            // The new API might return data directly as an array or nested under a 'results' key.
-            // Adjusting to expect an array directly based on common discover patterns.
-            // If it's under 'results', then items.results.forEach(...) would be needed.
-            // For now, assuming 'items' is the array.
-            items.forEach(item => containerElement.appendChild(createMediaCard(item, mediaType)));
-        }
+        function renderItems(items, gridElement, itemType, noResultsElement = null) {
+            gridElement.innerHTML = ''; // Clear previous items
+            if (noResultsElement) noResultsElement.classList.add('hidden');
 
-        // --- Main Logic Functions ---
-        async function showTrendingView() {
-            // Fetching trending TV shows as an example
-            // The actual response structure from moviesapi.to/api/discover/tv needs to be known.
-            // Assuming it returns an array of TV show objects.
-            const data = await fetchData(`${API_BASE_URL}/api/discover/tv`, 'Failed to load trending TV shows');
-            if (data) { // Assuming data is the array of items, or data.results if nested
-                displayMedia(data.results || data, trendingGrid, 'tv'); // Pass 'tv' as mediaType
-            }
-            updateView('trending');
-        }
-        
-        // Search functionality is disabled for now
-        // searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') performSearch(); });
-        // searchButton.addEventListener('click', performSearch);
+            if (items && items.length > 0) {
+                items.forEach(item => {
+                    // The API might have different structures for id (e.g. imdb_id or id)
+                    // We need to ensure 'item.id' is correctly sourced.
+                    // Assuming discover API returns 'id' as the primary identifier.
+                    // If it's nested (e.g. item.ids.tmdb), adjust accordingly.
+                    // For now, let's assume 'id' is directly available.
+                    if (!item.id && item.imdb_id) item.id = item.imdb_id; // Fallback if 'id' is missing but 'imdb_id' exists
 
-
-        function showContentInIframe(item) {
-            currentMediaItem = item; // Store the item for context (e.g., if we add S/E selection)
-            contentTitle.textContent = `Now Playing: ${item.title || 'Content'}`;
-            let iframeSrc = '';
-
-            if (item.media_type === 'movie' && item.id) {
-                iframeSrc = `${API_BASE_URL}/movie/${item.id}`;
-                tvControls.classList.add('hidden');
-            } else if (item.media_type === 'tv' && item.id) {
-                // Default to Season 1, Episode 1 for TV shows
-                // A more robust solution would fetch season/episode data if the API provides it
-                // and populate the selectors.
-                const defaultSeason = 1;
-                const defaultEpisode = 1;
-                
-                // Populate season/episode selectors (basic example, assumes max 10 seasons/50 episodes)
-                // This should ideally be based on actual data from the API if available
-                seasonSelect.innerHTML = Array.from({length: 10}, (_, i) => `<option value="${i+1}">Season ${i+1}</option>`).join('');
-                episodeSelect.innerHTML = Array.from({length: 50}, (_, i) => `<option value="${i+1}">Episode ${i+1}</option>`).join('');
-                seasonSelect.value = defaultSeason;
-                episodeSelect.value = defaultEpisode;
-
-                iframeSrc = `${API_BASE_URL}/tv/${item.id}-${defaultSeason}-${defaultEpisode}`;
-                tvControls.classList.remove('hidden');
+                    if (item.id) { // Only render if we have an ID
+                        gridElement.appendChild(createItemCard(item, itemType));
+                    } else {
+                        console.warn("Item skipped due to missing ID:", item);
+                    }
+                });
             } else {
-                showMessage('Could not determine content type or ID.', 'error');
-                updateView('trending'); // Go back if we can't play
-                return;
-            }
-
-            if (iframeSrc) {
-                iframePlayer.src = iframeSrc;
-                updateView('content');
+                if (noResultsElement) {
+                    noResultsElement.classList.remove('hidden');
+                } else {
+                    gridElement.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">No ${itemType}s found.</p>`;
+                }
             }
         }
         
-        loadTvEpisodeButton.addEventListener('click', () => {
-            if (currentMediaItem && currentMediaItem.media_type === 'tv' && currentMediaItem.id) {
-                const season = seasonSelect.value;
-                const episode = episodeSelect.value;
-                if (season && episode) {
-                    const iframeSrc = `${API_BASE_URL}/tv/${currentMediaItem.id}-${season}-${episode}`;
-                    iframePlayer.src = iframeSrc;
-                    contentTitle.textContent = `Now Playing: ${currentMediaItem.title} (S${season} E${episode})`;
-                    // No need to call updateView if already in 'content' view
+        function renderPagination(container, currentPage, totalPages, pageChangeHandler) {
+            container.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            const createButton = (text, page, enabled = true) => {
+                const button = document.createElement('button');
+                button.textContent = text;
+                button.className = `bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm ${!enabled ? 'opacity-50 cursor-not-allowed' : ''}`;
+                if (enabled) {
+                    button.addEventListener('click', () => pageChangeHandler(page));
                 } else {
-                    showMessage('Please select a valid season and episode.', 'error');
+                    button.disabled = true;
+                }
+                return button;
+            };
+
+            container.appendChild(createButton('Previous', currentPage - 1, currentPage > 1));
+            
+            const pageIndicator = document.createElement('span');
+            pageIndicator.className = "text-white mx-2 sm:mx-4";
+            pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+            container.appendChild(pageIndicator);
+
+            container.appendChild(createButton('Next', currentPage + 1, currentPage < totalPages));
+        }
+
+        // --- DATA FETCHING AND DISPLAY ---
+        async function fetchAndDisplayMovies(page = 1) {
+            showLoading();
+            currentPageMovies = page;
+            const data = await fetchApi(`${BASE_DISCOVER_API_URL}/discover/movie?page=${page}&resultsPerPage=${RESULTS_PER_PAGE}&ordering=year&direction=desc`);
+            hideLoading();
+            if (data && data.results) {
+                renderItems(data.results, moviesGrid, 'movie');
+                // Assuming API provides total results or total pages. If not, this needs adjustment.
+                // For now, let's estimate total pages if API provides 'totalResults'.
+                totalPagesMovies = data.totalResults ? Math.ceil(data.totalResults / RESULTS_PER_PAGE) : (data.results.length > 0 ? currentPageMovies +1 : currentPageMovies); // Simple estimation
+                if (data.total_pages) totalPagesMovies = data.total_pages; // If API provides total_pages
+                renderPagination(moviesPaginationContainer, currentPageMovies, totalPagesMovies, fetchAndDisplayMovies);
+            } else {
+                 moviesGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">Could not load movies. Please try again later.</p>`;
+                 totalPagesMovies = 1; // Reset pagination if fetch fails
+                 renderPagination(moviesPaginationContainer, currentPageMovies, totalPagesMovies, fetchAndDisplayMovies);
+            }
+        }
+
+        async function fetchAndDisplayTvShows(page = 1) {
+            showLoading();
+            currentPageTvShows = page;
+            const data = await fetchApi(`${BASE_DISCOVER_API_URL}/discover/tv?page=${page}&resultsPerPage=${RESULTS_PER_PAGE}&ordering=year&direction=desc`);
+            hideLoading();
+            if (data && data.results) {
+                renderItems(data.results, tvShowsGrid, 'tv');
+                totalPagesTvShows = data.totalResults ? Math.ceil(data.totalResults / RESULTS_PER_PAGE) : (data.results.length > 0 ? currentPageTvShows + 1 : currentPageTvShows);
+                if (data.total_pages) totalPagesTvShows = data.total_pages;
+                renderPagination(tvShowsPaginationContainer, currentPageTvShows, totalPagesTvShows, fetchAndDisplayTvShows);
+            } else {
+                tvShowsGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">Could not load TV shows. Please try again later.</p>`;
+                totalPagesTvShows = 1;
+                renderPagination(tvShowsPaginationContainer, currentPageTvShows, totalPagesTvShows, fetchAndDisplayTvShows);
+            }
+        }
+
+        async function performSearch(query) {
+            if (query.length < 3) {
+                showMessage("Search query must be at least 3 characters long.");
+                return;
+            }
+            currentSearchTerm = query;
+            showLoading();
+            searchQueryDisplay.textContent = query;
+            showView(searchResultsView);
+
+            // Fetch movies
+            const movieData = await fetchApi(`${BASE_DISCOVER_API_URL}/discover/movie?query=${encodeURIComponent(query)}&resultsPerPage=${RESULTS_PER_PAGE}&direction=desc&page=1`);
+            if (movieData && movieData.results) {
+                renderItems(movieData.results, searchMoviesGrid, 'movie', searchMoviesNoResults);
+            } else {
+                searchMoviesGrid.innerHTML = '';
+                searchMoviesNoResults.classList.remove('hidden');
+            }
+
+            // Fetch TV shows
+            const tvData = await fetchApi(`${BASE_DISCOVER_API_URL}/discover/tv?query=${encodeURIComponent(query)}&resultsPerPage=${RESULTS_PER_PAGE}&direction=desc&page=1`);
+            if (tvData && tvData.results) {
+                renderItems(tvData.results, searchTvShowsGrid, 'tv', searchTvShowsNoResults);
+            } else {
+                searchTvShowsGrid.innerHTML = '';
+                searchTvShowsNoResults.classList.remove('hidden');
+            }
+            hideLoading();
+        }
+
+        // --- MODAL LOGIC ---
+        function openDetailModal(id, type, title, posterUrl, itemData) { // itemData passed for TV show posters
+            detailModalTitle.textContent = title;
+            detailModalContent.innerHTML = ''; // Clear previous content
+
+            if (type === 'movie') {
+                const iframeSrc = `${BASE_CONTENT_URL}/movie/${id}`;
+                detailModalContent.innerHTML = `
+                    <div class="w-full h-full modal-iframe-aspect">
+                        <iframe src="${iframeSrc}" class="w-full h-full" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2 p-2">Attempting to load content for "${title}". If it doesn't load, the provider may not allow embedding or the content might be unavailable.</p>
+                `;
+            } else if (type === 'tv') {
+                // Use poster from itemData if available, otherwise the one passed (which might be a placeholder)
+                const actualPosterUrl = (itemData && itemData.poster && itemData.poster !== "N/A") ? itemData.poster : posterUrl;
+                
+                detailModalContent.innerHTML = `
+                    <div class="flex flex-col md:flex-row gap-4 items-start">
+                        <div class="w-full md:w-1/3 flex-shrink-0">
+                             <img src="${actualPosterUrl}" alt="${title}" class="w-full h-auto object-cover rounded-md shadow-md" onerror="this.onerror=null;this.src='${getPlaceholderUrl(200,300,title)}';">
+                        </div>
+                        <div class="w-full md:w-2/3">
+                            <p class="text-gray-300 mb-3 text-sm">Enter season and episode number for "${title}" to watch.</p>
+                            <div class="mb-3">
+                                <label for="season-input" class="block text-sm font-medium text-gray-300">Season:</label>
+                                <input type="number" id="season-input" value="1" min="1" class="mt-1 block w-full bg-neutral-700 border-neutral-600 text-white rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm p-2">
+                            </div>
+                            <div class="mb-4">
+                                <label for="episode-input" class="block text-sm font-medium text-gray-300">Episode:</label>
+                                <input type="number" id="episode-input" value="1" min="1" class="mt-1 block w-full bg-neutral-700 border-neutral-600 text-white rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm p-2">
+                            </div>
+                            <button id="watch-tv-episode-button" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors">Load Episode</button>
+                        </div>
+                    </div>
+                    <div id="tv-episode-iframe-container" class="mt-4 w-full h-0 modal-iframe-aspect transition-all duration-300 ease-in-out overflow-hidden"></div>
+                     <p id="tv-embed-info" class="text-xs text-gray-400 mt-2 p-2 hidden">Attempting to load episode. If it doesn't load, the provider may not allow embedding or the content might be unavailable.</p>
+                `;
+
+                const watchButton = document.getElementById('watch-tv-episode-button');
+                const seasonInput = document.getElementById('season-input');
+                const episodeInput = document.getElementById('episode-input');
+                const iframeContainer = document.getElementById('tv-episode-iframe-container');
+                const tvEmbedInfo = document.getElementById('tv-embed-info');
+
+                watchButton.addEventListener('click', () => {
+                    const season = seasonInput.value;
+                    const episode = episodeInput.value;
+                    if (season && episode) {
+                        const iframeSrc = `${BASE_CONTENT_URL}/tv/${id}-${season}-${episode}`;
+                        iframeContainer.innerHTML = `<iframe src="${iframeSrc}" class="w-full h-full" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+                        iframeContainer.style.height = ''; // Reset to allow aspect ratio to control it
+                        tvEmbedInfo.classList.remove('hidden');
+                    } else {
+                        showMessage("Please enter valid season and episode numbers.");
+                    }
+                });
+            }
+            detailModal.classList.remove('hidden');
+            detailModal.classList.add('flex'); // Use flex for centering
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeModal() {
+            detailModal.classList.add('hidden');
+            detailModal.classList.remove('flex');
+            detailModalContent.innerHTML = ''; // Clear content to stop any playing media
+            document.body.style.overflow = 'auto';
+        }
+
+        // --- NAVIGATION ---
+        function navigateTo(pageName) {
+            currentView = pageName;
+            showLoading();
+            
+            // Update active link style
+            navLinks.forEach(link => {
+                link.classList.toggle('active', link.dataset.page === pageName);
+            });
+
+            if (pageName === 'movies') {
+                showView(moviesDiscoverView);
+                fetchAndDisplayMovies(currentPageMovies); // Or 1 if you want to reset
+            } else if (pageName === 'tv') {
+                showView(tvShowsDiscoverView);
+                fetchAndDisplayTvShows(currentPageTvShows); // Or 1
+            } else if (pageName === 'search') {
+                // Search is handled by performSearch, which calls showView(searchResultsView)
+                // This case is for if navigateTo is called directly with 'search'
+                if (currentSearchTerm) {
+                    performSearch(currentSearchTerm);
+                } else {
+                    // If no search term, maybe default to movies or show a message
+                    navigateTo('movies'); 
+                }
+            }
+            hideLoading(); // Should be hidden by specific fetch functions, but as a fallback
+            window.scrollTo(0, 0); // Scroll to top on navigation
+        }
+
+        // --- EVENT LISTENERS ---
+        logo.addEventListener('click', () => {
+            searchInput.value = ''; // Clear search on logo click
+            currentPageMovies = 1; // Reset to first page
+            navigateTo('movies');
+        });
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                searchInput.value = ''; // Clear search on nav click
+                if (link.dataset.page === 'movies') currentPageMovies = 1;
+                if (link.dataset.page === 'tv') currentPageTvShows = 1;
+                navigateTo(link.dataset.page);
+            });
+        });
+
+        searchInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                const searchTerm = searchInput.value.trim();
+                if (searchTerm) {
+                    performSearch(searchTerm);
+                } else {
+                     // If search is cleared and enter pressed, go to default view
+                    navigateTo('movies');
                 }
             }
         });
-
-
-        function handleBack() {
-            iframePlayer.src = 'about:blank'; // Stop iframe content
-            tvControls.classList.add('hidden'); // Hide TV controls
-            currentMediaItem = null; // Clear current item
-
-            if (currentView === 'content') {
-                updateView(previousView || 'trending'); // Go to previous view or trending
-            } else {
-                showTrendingView(); // Fallback
+        // Also handle search if user clears input and presses enter
+        searchInput.addEventListener('search', function() { // For the 'x' button in some browsers
+            if (!searchInput.value.trim()) {
+                navigateTo('movies'); // Or last active view
             }
+        });
+
+
+        closeModalButton.addEventListener('click', closeModal);
+        detailModal.addEventListener('click', function(event) {
+            // Close modal if backdrop is clicked
+            if (event.target === detailModal) {
+                closeModal();
+            }
+        });
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && !detailModal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+
+
+        // --- INITIALIZATION ---
+        function init() {
+            // Hide message box initially
+            messageBox.classList.add('hidden');
+            messageBox.classList.add('message-box-enter');
+
+            navigateTo('movies'); // Default view
         }
 
-        // --- Initial Load ---
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('currentYear').textContent = new Date().getFullYear();
-            showTrendingView();
-        });
+        // Start the app
+        document.addEventListener('DOMContentLoaded', init);
 
     </script>
 </body>
