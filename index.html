@@ -247,7 +247,7 @@
 
         let currentTvShow = { id: null, name: null, season: 1, episode: 1, totalSeasons: 0, episodesInCurrentSeason: [] };
         let seasonDetailsCache = {}; 
-        let currentSearchFilter = 'multi'; // 'multi', 'movie', 'tv'
+        let currentSearchFilter = 'multi'; 
         let currentSearchResults = [];
         let currentSearchQuery = '';
 
@@ -298,19 +298,19 @@
         }
 
         function sortAndDisplayResults() {
-            let resultsToDisplay = [...currentSearchResults];
+            let resultsToDisplay = [...currentSearchResults]; // Use the already processed and media_type-added results
             const sortBy = sortResultsSelect.value;
 
             resultsToDisplay.sort((a, b) => {
                 if (sortBy === 'popularity.desc') {
                     return (b.popularity || 0) - (a.popularity || 0);
                 } else if (sortBy === 'date.desc') {
-                    const dateA = new Date(a.release_date || a.first_air_date || 0);
-                    const dateB = new Date(b.release_date || b.first_air_date || 0);
+                    const dateA = new Date(a.release_date || a.first_air_date || '1900-01-01'); // Fallback for missing dates
+                    const dateB = new Date(b.release_date || b.first_air_date || '1900-01-01');
                     return dateB - dateA;
                 } else if (sortBy === 'date.asc') {
-                    const dateA = new Date(a.release_date || a.first_air_date || 0);
-                    const dateB = new Date(b.release_date || b.first_air_date || 0);
+                    const dateA = new Date(a.release_date || a.first_air_date || '3000-01-01'); // Fallback for missing dates
+                    const dateB = new Date(b.release_date || b.first_air_date || '3000-01-01');
                     return dateA - dateB;
                 }
                 return 0;
@@ -322,27 +322,38 @@
                 return;
             }
             resultsToDisplay.forEach(item => {
-                if ((item.media_type === 'movie' || item.media_type === 'tv') && item.poster_path) {
-                     searchResultsGrid.appendChild(createContentCard(item, item.media_type));
-                }
+                 // Poster path check is already done when populating currentSearchResults
+                 searchResultsGrid.appendChild(createContentCard(item, item.media_type));
             });
         }
-
 
         function displaySearchResultsUI(results, query) {
             moviesContainer.classList.add('hidden');
             tvShowsContainer.classList.add('hidden');
-            contentAreaTitle.classList.add('hidden'); // Hide "Top Rated" title
+            contentAreaTitle.classList.add('hidden');
             searchResultsGridContainer.classList.remove('hidden');
             searchResultsTitle.textContent = `Search Results for "${query}"`;
-            currentSearchResults = results.filter(item => (item.media_type === 'movie' || item.media_type === 'tv') && item.poster_path); // Store results with posters
-            sortResultsSelect.value = 'popularity.desc'; // Default sort
+
+            let processedResults = results.map(item => {
+                if (currentSearchFilter === 'movie' && !item.media_type) {
+                    return { ...item, media_type: 'movie' };
+                } else if (currentSearchFilter === 'tv' && !item.media_type) {
+                    return { ...item, media_type: 'tv' };
+                }
+                return item;
+            });
+            
+            currentSearchResults = processedResults.filter(item => 
+                (item.media_type === 'movie' || item.media_type === 'tv') && item.poster_path
+            );
+            
+            sortResultsSelect.value = 'popularity.desc';
             sortAndDisplayResults();
         }
 
         async function executeSearch(query) {
             if (!query) return;
-            currentSearchQuery = query; // Store query for sorting
+            currentSearchQuery = query; 
             showStatus('');
             contentAreaTitle.classList.add('hidden');
             moviesContainer.classList.add('hidden');
@@ -358,7 +369,7 @@
             
             try {
                 const data = await fetchFromTMDB(endpoint, { query });
-                displaySearchResultsUI(data.results, query);
+                displaySearchResultsUI(data.results || [], query); // Ensure data.results is not undefined
             } catch (error) {
                 searchResultsTitle.textContent = `Search Results`;
                 searchResultsGrid.innerHTML = `<p class="col-span-full text-center text-red-400">Error during search. Please try again.</p>`;
@@ -515,11 +526,10 @@
             container.addEventListener('click', (e) => {
                 if (e.target.classList.contains('filter-btn')) {
                     const filterType = e.target.dataset.filter;
-                    setSearchFilter(filterType, desktopSearchFilters); // Keep both in sync
+                    setSearchFilter(filterType, desktopSearchFilters); 
                     setSearchFilter(filterType, mobileSearchFilters);
-                    // If a search query exists, re-execute search with new filter
                     const query = desktopSearchInput.value.trim() || mobileSearchInput.value.trim();
-                    if (searchResultsGridContainer.classList.contains('hidden') === false && query) { // Only re-search if results are visible
+                    if (searchResultsGridContainer.classList.contains('hidden') === false && query) { 
                         executeSearch(query);
                     }
                 }
