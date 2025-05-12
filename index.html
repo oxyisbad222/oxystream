@@ -8,10 +8,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
+        html, body {
+            overscroll-behavior-y: contain; /* Helps prevent pull-to-refresh / scroll chaining on some mobile browsers */
+        }
         body {
             font-family: 'Inter', sans-serif;
             background-color: #141414;
             color: #e5e5e5;
+        }
+        body.modal-open {
+            overflow: hidden !important; /* Force no scroll on body */
+            position: fixed; /* More robust scroll lock for iOS */
+            width: 100%;
+            height: 100%;
         }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #232323; }
@@ -46,29 +55,40 @@
         }
         .iframe-container iframe { position: absolute; top: 0; left: 0; bottom: 0; right: 0; width: 100%; height: 100%; border: none; }
         
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.85); }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); 
+                 /* overflow: hidden; /* Let modal-content handle its own scroll if needed */
+        }
         .modal-content { 
             background-color: #181818; 
-            padding: 10px; 
             border-radius: 8px;
             width: 95vw; 
             max-width: 900px; 
-            margin: 2.5vh auto; 
+            /* margin: 2.5vh auto; Removed to use absolute centering */
             max-height: 95vh; 
             display: flex; 
             flex-direction: column;
-            position: relative; 
+            position: fixed; /* Changed from absolute for better centering with transform */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            overflow-y: auto; /* Allow content within modal to scroll if it exceeds max-height */
+            padding: 15px; /* Consistent padding */
         }
         .close-button { 
             color: #aaa; 
-            font-size: 32px; 
+            font-size: 28px; /* Slightly smaller for better fit */
             font-weight: bold; 
             cursor: pointer; 
             line-height: 1;
             position: absolute; 
-            top: 10px;
-            right: 15px;
+            top: 8px; /* Adjusted for new padding */
+            right: 10px; /* Adjusted for new padding */
             z-index: 1001; 
+            width: 30px; /* Ensure tap target */
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .close-button:hover, .close-button:focus { color: #e50914; text-decoration: none; }
 
@@ -123,43 +143,30 @@
 
         @media (max-width: 768px) {
             .modal-content {
-                width: 100vw;
-                height: 100vh; 
-                max-height: 100vh; 
-                margin: 0;
-                border-radius: 0;
-                padding: 5px; 
+                width: 98vw; /* Slightly less than full viewport width */
+                height: auto; /* Allow height to be determined by content up to max-height */
+                max-height: 95vh; /* Slightly less than full viewport height */
+                padding: 10px; 
             }
-            .close-button { 
-                background-color: rgba(0,0,0,0.5);
-                border-radius: 50%;
-                width: 30px;
-                height: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                top: 8px; 
-                right: 8px;
-            }
-            #playerModalTitle {
+             #playerModalTitle {
                 font-size: 1rem; 
-                margin-bottom: 5px;
+                margin-bottom: 8px; /* Increased margin a bit */
                 padding-right: 35px; 
             }
             #modalTvControls {
-                padding: 5px;
-                margin-top: 8px;
+                padding: 8px; /* Adjusted padding */
+                margin-top: 10px; /* Adjusted margin */
             }
-            #modalTvControls .select-field, #modalTvControls .btn-next-episode {
-                font-size: 0.75rem; 
-                padding: 0.35rem 0.5rem;
+             #modalTvControls .select-field, #modalTvControls .btn-next-episode {
+                font-size: 0.8rem; /* Slightly larger for easier tapping */
+                padding: 0.4rem 0.6rem;
             }
             #modalTvControls label {
-                font-size: 0.75rem;
+                font-size: 0.8rem;
             }
             .modal-content > p.text-xs { 
-                font-size: 0.65rem;
-                margin-top: 5px;
+                font-size: 0.7rem; /* Slightly larger */
+                margin-top: 8px;
             }
         }
     </style>
@@ -323,6 +330,11 @@
         let currentSearchFilter = 'multi'; 
         let currentSearchResults = [];
         let currentSearchQuery = '';
+        let originalBodyOverflow = '';
+        let originalBodyPosition = '';
+        let originalBodyWidth = '';
+        let originalBodyHeight = '';
+        let originalHtmlOverflow = '';
 
 
         function showStatus(message, type = 'info') {
@@ -577,16 +589,44 @@
             loadPlayer(embedURL); updateNextEpisodeButtonState(); 
         }
 
+        function openModal() {
+            originalBodyOverflow = document.body.style.overflow;
+            originalBodyPosition = document.body.style.position;
+            originalBodyWidth = document.body.style.width;
+            originalBodyHeight = document.body.style.height;
+            originalHtmlOverflow = document.documentElement.style.overflow;
+
+            document.documentElement.style.overflow = 'hidden';
+            document.body.classList.add('modal-open');
+            // document.body.style.overflow = 'hidden';
+            // document.body.style.position = 'fixed';
+            // document.body.style.width = '100%';
+            // document.body.style.height = '100%';
+            playerModal.style.display = "block";
+        }
+
+        function closeModal() {
+            playerModal.style.display = "none";
+            playerContainer.innerHTML = ""; 
+            document.body.classList.remove('modal-open');
+            document.documentElement.style.overflow = originalHtmlOverflow;
+            // document.body.style.overflow = originalBodyOverflow;
+            // document.body.style.position = originalBodyPosition;
+            // document.body.style.width = originalBodyWidth;
+            // document.body.style.height = originalBodyHeight;
+            modalTvControls.classList.add('hidden'); 
+        }
+
+
         function loadPlayer(url) {
             const sandboxPermissions = ["allow-scripts", "allow-same-origin", "allow-forms", "allow-presentation", "allow-fullscreen"].join(" ");
             playerContainer.innerHTML = `<iframe src="${url}" sandbox="${sandboxPermissions}" allow="fullscreen; autoplay" allowfullscreen></iframe>`;
-            playerModal.style.display = "block"; document.body.style.overflow = 'hidden';
+            openModal();
         }
 
-        function closePlayerModal() {
-            playerModal.style.display = "none"; playerContainer.innerHTML = ""; 
-            document.body.style.overflow = 'auto'; modalTvControls.classList.add('hidden'); 
-        }
+        closeModalButton.addEventListener('click', closeModal);
+        window.addEventListener('click', (event) => { if (event.target === playerModal) closeModal(); });
+        window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && playerModal.style.display === 'block') closeModal(); });
         
         function setSearchFilter(filterType, filterButtonContainer) {
             currentSearchFilter = filterType;
@@ -638,10 +678,6 @@
                 modalSeasonSelect.value = currentTvShow.season; 
             }
         });
-
-        closeModalButton.addEventListener('click', closePlayerModal);
-        window.addEventListener('click', (event) => { if (event.target === playerModal) closePlayerModal(); });
-        window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && playerModal.style.display === 'block') closePlayerModal(); });
 
         function reinitializeScrollableContent() {
             moviesScrollWrapper = document.getElementById('moviesScrollWrapper');
