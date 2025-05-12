@@ -62,7 +62,7 @@
             transition: color 0.2s, transform 0.2s;
         }
         .card .favorite-icon:hover { transform: scale(1.1); }
-        .card .favorite-icon.is-favorite { color: #e50914; } /* Netflix red for favorited */
+        .card .favorite-icon.is-favorite { color: #e50914; }
         
         .iframe-container { 
             position: relative; overflow: hidden; width: 100%; 
@@ -78,6 +78,7 @@
             position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             overflow-y: auto; padding: 15px; 
+            -webkit-overflow-scrolling: touch; /* For smoother scrolling on iOS inside modal */
         }
         .close-button { 
             color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1;
@@ -112,7 +113,7 @@
         .scroll-button:disabled { opacity:0.3; cursor: not-allowed;}
 
         #modalTvControls, #infoModalTvControls { background-color: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; margin-top: 10px; }
-        .btn-action, .btn-next-episode { /* Combined for consistency */
+        .btn-action, .btn-next-episode { 
             background-color: #e50914; color: white; font-weight: bold;
             padding: 0.6rem 1.2rem; border-radius: 0.25rem;
             transition: background-color 0.2s ease-in-out; cursor: pointer; border: none;
@@ -135,16 +136,24 @@
         }
         .filter-btn:hover { background-color: #444; }
         .filter-btn.active { background-color: #e50914; color: white; border-color: #e50914; }
+        .nav-link {
+            cursor: pointer; padding: 0.5rem 1rem; border-radius: 0.25rem;
+            transition: background-color 0.2s ease-in-out;
+            color: #e5e5e5;
+        }
+        .nav-link:hover, .nav-link.active { background-color: rgba(229, 9, 20, 0.2); }
+
 
         #infoModalContent .info-poster { width: 120px; height: 180px; object-fit: cover; border-radius: 0.25rem; flex-shrink: 0;}
-        @media (min-width: 640px) { /* sm breakpoint */
+        @media (min-width: 640px) { 
             #infoModalContent .info-poster { width: 150px; height: 225px; }
         }
 
 
         @media (max-width: 768px) {
             .modal-content {
-                width: 98vw; height: auto; max-height: 95vh; padding: 10px; 
+                width: 98vw; height: auto; max-height: 98vh; 
+                padding: 10px; 
             }
              #playerModalTitle, #infoModalTitle {
                 font-size: 1rem; margin-bottom: 8px; padding-right: 35px; 
@@ -166,19 +175,23 @@
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 <a href="#" id="homeLink" class="text-3xl font-bold netflix-red-text">SkyeMovie</a>
-                <div class="hidden md:flex flex-grow items-center max-w-2xl mx-4">
-                    <div class="relative w-full">
-                        <input type="text" id="desktopSearchInput" class="input-field w-full pr-10" placeholder="Search...">
-                        <button id="desktopSearchButton" class="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-e50914">
-                            <i class="fas fa-search"></i>
-                        </button>
+                <nav class="hidden md:flex items-center space-x-2">
+                    <a href="#" id="navDiscoverDesktop" class="nav-link active">Top Rated</a>
+                    <a href="#" id="navFavoritesDesktop" class="nav-link">My Favorites</a>
+                    <div class="flex-grow items-center max-w-lg ml-4">
+                        <div class="relative w-full">
+                            <input type="text" id="desktopSearchInput" class="input-field w-full pr-10" placeholder="Search...">
+                            <button id="desktopSearchButton" class="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-e50914">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div id="desktopSearchFilters" class="flex space-x-2 ml-3">
+                     <div id="desktopSearchFilters" class="flex space-x-1 ml-2">
                         <button class="filter-btn active" data-filter="multi">All</button>
                         <button class="filter-btn" data-filter="movie">Movies</button>
                         <button class="filter-btn" data-filter="tv">TV</button>
                     </div>
-                </div>
+                </nav>
                 <div class="md:hidden">
                     <button id="mobileMenuButton" class="text-gray-300 hover:text-white focus:outline-none">
                         <i class="fas fa-bars text-2xl"></i>
@@ -200,6 +213,7 @@
             </div>
             <a href="#" id="navDiscoverMobile" class="block text-center py-2 hover:bg-gray-700 rounded-md">Discover Top Rated</a>
             <a href="#" id="navFavoritesMobile" class="block text-center py-2 hover:bg-gray-700 rounded-md">My Favorites</a>
+            <a href="https://skyebeta.vercel.app/" target="_blank" rel="noopener noreferrer" class="block text-center py-2 hover:bg-gray-700 rounded-md">iOS App (Beta)</a>
         </div>
     </header>
     
@@ -304,7 +318,7 @@
     </div>
 
     <footer class="text-center p-6 mt-12 border-t border-gray-700">
-        <p class="text-sm text-gray-400">Welcome to SkyeMovie! For the latest updates and community chat, join us on Telegram:</p>
+        <p class="text-sm text-gray-400">SkyeMovie is in development. For the latest updates and community chat, join us on Telegram:</p>
         <a href="https://t.me/skyemovieupdates" target="_blank" rel="noopener noreferrer" class="text-lg netflix-red-text hover:underline font-semibold">
             <i class="fab fa-telegram-plane mr-1"></i> SkyeMovie Updates
         </a>
@@ -369,6 +383,8 @@
         const mobileMenu = document.getElementById('mobileMenu');
         const navDiscoverMobile = document.getElementById('navDiscoverMobile');
         const navFavoritesMobile = document.getElementById('navFavoritesMobile');
+        const navDiscoverDesktop = document.getElementById('navDiscoverDesktop');
+        const navFavoritesDesktop = document.getElementById('navFavoritesDesktop');
 
 
         let currentTvShow = { id: null, name: null, season: 1, episode: 1, totalSeasons: 0, episodesInCurrentSeason: [] };
@@ -557,7 +573,7 @@
 
         function createContentCard(item, type) {
             const card = document.createElement('div'); card.className = 'card';
-            const title = type === 'movie' ? (item.title || item.original_name) : (item.name || item.original_name);
+            const title = (item.title || item.name || item.original_name || "Untitled");
             const posterPath = item.poster_path ? `${TMDB_IMG_BASE_URL}${item.poster_path}` : 'https://placehold.co/180x270/1f1f1f/e50914?text=No+Poster';
             const isFav = isFavorite(item.id, type);
             
@@ -574,12 +590,12 @@
             card.querySelector('img').addEventListener('click', () => openInfoModal(item.id, type));
             card.querySelector('h4').addEventListener('click', () => openInfoModal(item.id, type));
             card.querySelector('.favorite-icon').addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent opening info modal when clicking favorite
+                e.stopPropagation(); 
                 const favIcon = e.currentTarget;
                 const favData = {
                     id: parseInt(favIcon.dataset.id),
                     type: favIcon.dataset.type,
-                    title: favIcon.dataset.title,
+                    title: favIcon.dataset.title, 
                     poster_path: favIcon.dataset.poster
                 };
                 toggleFavorite(favData, favIcon.querySelector('i'));
@@ -592,7 +608,7 @@
             try {
                 const details = await fetchFromTMDB(`${type}/${id}`);
                 showStatus("");
-                currentInfoModalData = { ...details, type: type }; // Store for play and favorite buttons
+                currentInfoModalData = { ...details, type: type, id: id }; // Ensure id is part of this object
 
                 infoModalTitle.textContent = details.title || details.name || "Details";
                 infoModalPoster.src = details.poster_path ? `${TMDB_IMG_BASE_URL}${details.poster_path}` : 'https://placehold.co/150x225/1f1f1f/e50914?text=No+Poster';
@@ -605,10 +621,10 @@
 
                 if (type === 'tv') {
                     infoModalTvControls.classList.remove('hidden');
-                    currentTvShow.id = id; // Set for TV controls within info modal
+                    currentTvShow.id = id; 
                     currentTvShow.name = details.name || details.original_name;
-                    currentTvShow.season = 1; // Default to S1
-                    currentTvShow.episode = 1; // Default to E1
+                    currentTvShow.season = 1; 
+                    currentTvShow.episode = 1; 
                     currentTvShow.totalSeasons = details.number_of_seasons;
                     
                     let validSeasons = details.seasons.filter(s => s.season_number > 0 && s.episode_count > 0);
@@ -616,7 +632,7 @@
                     
                     populateDropdown(infoModalSeasonSelect, validSeasons, 'season_number', 'name', 'S');
                     if (validSeasons.length > 0) {
-                        infoModalSeasonSelect.value = currentTvShow.season; // Set to S1
+                        infoModalSeasonSelect.value = currentTvShow.season; 
                         await fetchEpisodesForInfoModalSeason(id, currentTvShow.season);
                     } else {
                         infoModalSeasonSelect.innerHTML = '<option>N/A</option>';
@@ -633,7 +649,7 @@
 
         async function fetchEpisodesForInfoModalSeason(tvId, seasonNumber) {
             infoModalEpisodeSelect.disabled = true; infoModalEpisodeSelect.innerHTML = '<option>Loading...</option>';
-            const cacheKey = `${tvId}-${seasonNumber}-info`; // Different cache for info modal
+            const cacheKey = `${tvId}-${seasonNumber}-info`; 
             try {
                 let seasonDetails;
                 if (seasonDetailsCache[cacheKey]) seasonDetails = seasonDetailsCache[cacheKey];
@@ -642,8 +658,8 @@
                 const episodes = seasonDetails.episodes || [];
                 populateDropdown(infoModalEpisodeSelect, episodes, 'episode_number', 'name', 'E');
                 if (episodes.length > 0) {
-                    infoModalEpisodeSelect.value = 1; // Default to E1
-                    currentTvShow.episode = 1; // Update state
+                    infoModalEpisodeSelect.value = 1; 
+                    currentTvShow.episode = 1; 
                 }
                 infoModalEpisodeSelect.disabled = false;
             } catch (error) { infoModalEpisodeSelect.innerHTML = '<option>Error</option>'; }
@@ -652,7 +668,7 @@
         infoModalSeasonSelect.addEventListener('change', async () => {
             if (!currentInfoModalData || currentInfoModalData.type !== 'tv') return;
             currentTvShow.season = parseInt(infoModalSeasonSelect.value);
-            currentTvShow.episode = 1; // Reset episode when season changes
+            currentTvShow.episode = 1; 
             await fetchEpisodesForInfoModalSeason(currentInfoModalData.id, currentTvShow.season);
         });
 
@@ -663,21 +679,20 @@
 
         infoModalPlayButton.addEventListener('click', () => {
             if (!currentInfoModalData) return;
-            closeModal(infoModal); // Close info modal first
+            closeModal(infoModal); 
             if (currentInfoModalData.type === 'movie') {
                 playMovie(currentInfoModalData.id, currentInfoModalData.title || currentInfoModalData.original_name);
             } else if (currentInfoModalData.type === 'tv') {
-                // Ensure currentTvShow state is aligned with info modal selections
                 currentTvShow.id = currentInfoModalData.id;
                 currentTvShow.name = currentInfoModalData.name || currentInfoModalData.original_name;
                 currentTvShow.season = parseInt(infoModalSeasonSelect.value) || 1;
                 currentTvShow.episode = parseInt(infoModalEpisodeSelect.value) || 1;
-                updateAndShowTVControlsInPlayerModal(); // This will fetch details for player modal
+                updateAndShowTVControlsInPlayerModal(); 
                 playTvShow();
             }
         });
         
-        async function updateAndShowTVControlsInPlayerModal() { // Renamed from updateAndShowTVControlsInModal
+        async function updateAndShowTVControlsInPlayerModal() { 
             if (!currentTvShow.id) { modalTvControls.classList.add('hidden'); return; }
             modalTvShowTitleEl.textContent = currentTvShow.name || 'Selected TV Show';
             modalTvControls.classList.remove('hidden');
@@ -693,13 +708,13 @@
                 if (validSeasons.find(s => s.season_number === currentTvShow.season)) modalSeasonSelect.value = currentTvShow.season;
                 else if (validSeasons.length > 0) { currentTvShow.season = validSeasons[0].season_number; modalSeasonSelect.value = currentTvShow.season; }
                 modalSeasonSelect.disabled = false;
-                await fetchEpisodesForPlayerModalSeason(currentTvShow.id, currentTvShow.season); // Renamed
+                await fetchEpisodesForPlayerModalSeason(currentTvShow.id, currentTvShow.season); 
             } catch (error) { modalSeasonSelect.innerHTML = '<option>Error</option>'; modalEpisodeSelect.innerHTML = '<option>Error</option>'; }
         }
         
-        async function fetchEpisodesForPlayerModalSeason(tvId, seasonNumber) { // Renamed from fetchEpisodesForModalSeason
+        async function fetchEpisodesForPlayerModalSeason(tvId, seasonNumber) { 
             modalEpisodeSelect.disabled = true; modalEpisodeSelect.innerHTML = '<option>Loading...</option>';
-            nextEpisodeButton.disabled = true; const cacheKey = `${tvId}-${seasonNumber}-player`; // Use different cache key if needed, or share
+            nextEpisodeButton.disabled = true; const cacheKey = `${tvId}-${seasonNumber}-player`; 
             try {
                 let seasonDetails;
                 if (seasonDetailsCache[cacheKey]) seasonDetails = seasonDetailsCache[cacheKey];
@@ -731,14 +746,14 @@
         }
         
         function playMovie(id, title) {
-            modalTvControls.classList.add('hidden'); // Player modal TV controls
+            modalTvControls.classList.add('hidden'); 
             const embedURL = `${ANYEMBED_BASE_URL}/movie/${id}?server=${DEFAULT_SERVER}`;
             playerModalTitle.textContent = title || 'Movie'; loadPlayer(embedURL);
         }
 
         function playTvShow() {
             if (!currentTvShow.id) return;
-            modalTvControls.classList.remove('hidden'); // Player modal TV controls
+            modalTvControls.classList.remove('hidden'); 
             const embedURL = `${ANYEMBED_BASE_URL}/tv/${currentTvShow.id}/${currentTvShow.season}/${currentTvShow.episode}?server=${DEFAULT_SERVER}`;
             playerModalTitle.textContent = `${currentTvShow.name || 'TV Show'} (S${currentTvShow.season} E${currentTvShow.episode})`;
             loadPlayer(embedURL); updateNextEpisodeButtonState(); 
@@ -762,14 +777,11 @@
             
             document.body.classList.remove('modal-open');
             document.documentElement.style.overflow = originalHtmlOverflow;
-            // Check if any other modal is open before resetting body styles fully
-            // For this app, we assume only one modal type (info or player) is open at a time.
-            // If infoModal is also hidden, then fully restore.
             if (infoModal.style.display === 'none' && playerModal.style.display === 'none') {
                  document.body.style.position = originalBodyPosition;
                  document.body.style.width = originalBodyWidth;
                  document.body.style.height = originalBodyHeight;
-                 document.body.style.overflow = originalBodyOverflow; // Restore only if no other modals are open
+                 document.body.style.overflow = originalBodyOverflow; 
             }
             
             if (modalElement === playerModal) modalTvControls.classList.add('hidden'); 
@@ -877,6 +889,8 @@
         mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
         navDiscoverMobile.addEventListener('click', (e) => { e.preventDefault(); mobileMenu.classList.add('hidden'); homeLink.click(); });
         navFavoritesMobile.addEventListener('click', (e) => { e.preventDefault(); mobileMenu.classList.add('hidden'); loadFavorites(); });
+        navDiscoverDesktop.addEventListener('click', (e) => { e.preventDefault(); loadTopRatedContent(); });
+        navFavoritesDesktop.addEventListener('click', (e) => { e.preventDefault(); loadFavorites(); });
 
 
         function handleScrollButtonClick(event) {
@@ -903,7 +917,7 @@
         }
         function saveFavorites(favorites) {
             localStorage.setItem('skyeMovieFavorites', JSON.stringify(favorites));
-            updateAllFavoriteIcons(); // Update icons on all visible cards
+            updateAllFavoriteIcons(); 
         }
         function isFavorite(id, type) {
             const favorites = getFavorites();
@@ -912,7 +926,7 @@
         function addToFavorites(item) {
             const favorites = getFavorites();
             if (!isFavorite(item.id, item.type)) {
-                favorites.push({id: parseInt(item.id), type: item.type, title: item.title, poster_path: item.poster_path });
+                favorites.push({id: parseInt(item.id), type: item.type, title: (item.title || item.name || "Untitled"), poster_path: item.poster_path });
                 saveFavorites(favorites);
             }
         }
@@ -921,21 +935,32 @@
             favorites = favorites.filter(fav => !(fav.id === parseInt(id) && fav.type === type));
             saveFavorites(favorites);
         }
-        function toggleFavorite(itemData, iconElement) { // itemData should be {id, type, title, poster_path}
-            if (isFavorite(itemData.id, itemData.type)) {
-                removeFromFavorites(itemData.id, itemData.type);
+        function toggleFavorite(itemData, iconElement) { 
+            const titleToStore = itemData.title || itemData.name || "Untitled";
+            const favObject = {
+                id: parseInt(itemData.id),
+                type: itemData.type,
+                title: titleToStore,
+                poster_path: itemData.poster_path
+            };
+
+            if (isFavorite(favObject.id, favObject.type)) {
+                removeFromFavorites(favObject.id, favObject.type);
                 if(iconElement) {
-                    iconElement.classList.remove('fas', 'is-favorite');
+                    iconElement.classList.remove('fas'); // Removed 'is-favorite' from here, handled by updateAllFavoriteIcons
                     iconElement.classList.add('far');
                 }
-                updateInfoModalFavoriteButton(itemData.id, itemData.type); // Update info modal button if open
             } else {
-                addToFavorites(itemData);
+                addToFavorites(favObject);
                 if(iconElement) {
                     iconElement.classList.remove('far');
-                    iconElement.classList.add('fas', 'is-favorite');
+                    iconElement.classList.add('fas');
                 }
-                updateInfoModalFavoriteButton(itemData.id, itemData.type); // Update info modal button if open
+            }
+            updateInfoModalFavoriteButton(favObject.id, favObject.type); 
+            // If on favorites page, refresh it
+            if (!favoritesGridContainer.classList.contains('hidden')) {
+                loadFavorites();
             }
         }
         
@@ -947,7 +972,7 @@
                     title: currentInfoModalData.title || currentInfoModalData.name,
                     poster_path: currentInfoModalData.poster_path
                 };
-                toggleFavorite(favData); // Icon update handled by updateInfoModalFavoriteButton
+                toggleFavorite(favData); 
             }
         });
 
@@ -955,7 +980,7 @@
             if (infoModal.style.display === 'block' && currentInfoModalData && parseInt(currentInfoModalData.id) === parseInt(id) && currentInfoModalData.type === type) {
                 if (isFavorite(id, type)) {
                     infoModalFavoriteButton.innerHTML = '<i class="fas fa-heart mr-2"></i>Remove from Favorites';
-                    infoModalFavoriteButton.classList.add('is-favorite'); // Optional: style active fav button
+                    infoModalFavoriteButton.classList.add('is-favorite'); 
                 } else {
                     infoModalFavoriteButton.innerHTML = '<i class="far fa-heart mr-2"></i>Add to Favorites';
                     infoModalFavoriteButton.classList.remove('is-favorite');
@@ -973,8 +998,9 @@
                     icon.classList.add('fas');
                     iconEl.classList.add('is-favorite');
                 } else {
-                    icon.classList.remove('fas', 'is-favorite');
+                    icon.classList.remove('fas');
                     icon.classList.add('far');
+                    iconEl.classList.remove('is-favorite');
                 }
             });
         }
@@ -987,6 +1013,10 @@
             searchResultsGridContainer.classList.add('hidden');
             favoritesGridContainer.classList.remove('hidden');
             favoritesGrid.innerHTML = '';
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            navFavoritesDesktop.classList.add('active');
+            navFavoritesMobile.classList.add('active');
+
 
             const favorites = getFavorites();
             if (favorites.length === 0) {
@@ -1002,7 +1032,7 @@
         document.getElementById('currentYear').textContent = new Date().getFullYear();
         reinitializeScrollableContent(); 
         loadTopRatedContent();
-        updateAllFavoriteIcons(); // Initial update for any cards already rendered if localStorage has items
+        updateAllFavoriteIcons(); 
 
     </script>
 </body>
