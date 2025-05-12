@@ -103,7 +103,15 @@
         }
         .btn-next-episode:hover { background-color: #f40612; }
         .btn-next-episode:disabled { background-color: #555; cursor: not-allowed; }
-
+        
+        #searchResultsGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem; 
+        }
+        #searchResultsGrid .card {
+            width: 100%; 
+        }
     </style>
 </head>
 <body class="text-gray-200">
@@ -112,10 +120,10 @@
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 <a href="#" id="homeLink" class="text-3xl font-bold netflix-red-text">SkyeMovie</a>
-                <div class="flex-grow max-w-xl mx-4">
-                    <div class="relative">
-                        <input type="text" id="searchInput" class="input-field w-full pr-10" placeholder="Search movies or TV shows...">
-                        <button id="searchButton" class="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-e50914">
+                <div class="hidden md:flex flex-grow max-w-xl mx-4">
+                    <div class="relative w-full">
+                        <input type="text" id="desktopSearchInput" class="input-field w-full pr-10" placeholder="Search movies or TV shows...">
+                        <button id="desktopSearchButton" class="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-e50914">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
@@ -127,17 +135,23 @@
                 </div>
             </div>
         </div>
-        <div id="mobileMenu" class="md:hidden hidden bg-black bg-opacity-90">
-            <a href="#" id="navDiscoverMobile" class="block text-center py-3 border-b border-gray-700 hover:bg-gray-700">Discover</a>
+        <div id="mobileMenu" class="md:hidden hidden bg-black bg-opacity-90 p-4 space-y-3">
+            <div class="relative w-full">
+                 <input type="text" id="mobileSearchInput" class="input-field w-full pr-10" placeholder="Search...">
+                 <button id="mobileSearchButton" class="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-e50914">
+                     <i class="fas fa-search"></i>
+                 </button>
+            </div>
+            <a href="#" id="navDiscoverMobile" class="block text-center py-2 hover:bg-gray-700 rounded-md">Discover Popular</a>
         </div>
     </header>
     
     <main class="container mx-auto p-4 sm:p-6 lg:p-8" id="mainContent">
         <div id="statusMessage" class="text-center my-4 h-6"></div>
-        <section id="discoverSection">
-            <h2 class="text-3xl font-bold mb-6 border-l-4 border-red-600 pl-3">Most Popular</h2>
+        <section id="discoverSection"> 
+            <h2 id="contentAreaTitle" class="text-3xl font-bold mb-6 border-l-4 border-red-600 pl-3">Most Popular</h2>
             
-            <div id="discoverGridMovies" class="mb-10">
+            <div id="moviesContainer" class="mb-10">
                 <h3 class="text-2xl font-semibold mb-4">Movies</h3>
                 <div class="horizontal-scroll-container">
                     <button class="scroll-button prev" data-target="moviesScrollWrapper"><i class="fas fa-chevron-left"></i></button>
@@ -147,13 +161,17 @@
                 </div>
             </div>
 
-            <div id="discoverGridTV">
+            <div id="tvShowsContainer">
                 <h3 class="text-2xl font-semibold mb-4">TV Shows</h3>
                  <div class="horizontal-scroll-container">
                     <button class="scroll-button prev" data-target="tvScrollWrapper"><i class="fas fa-chevron-left"></i></button>
                     <div id="tvScrollWrapper" class="scroll-wrapper flex space-x-4">
                     </div>
                     <button class="scroll-button next" data-target="tvScrollWrapper"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+            <div id="searchResultsGridContainer" class="hidden mt-8">
+                <div id="searchResultsGrid">
                 </div>
             </div>
         </section>
@@ -181,7 +199,7 @@
                     <button id="nextEpisodeButton" class="btn-next-episode text-sm sm:col-start-3">Next Episode <i class="fas fa-step-forward ml-1"></i></button>
                 </div>
             </div>
-            <p class="text-xs text-gray-400 mt-3">Using Server 4. If player doesn't load, ID might not be compatible or available. Sandboxing is active to prevent popups/redirects, which might affect some player features.</p>
+            <p class="text-xs text-gray-400 mt-3">Using Server 4. We strive to keep advertising minimal to support the service and ensure a great viewing experience.</p>
         </div>
     </div>
 
@@ -195,8 +213,10 @@
         const ANYEMBED_BASE_URL = "https://player.autoembed.cc/embed";
         const DEFAULT_SERVER = 4;
 
-        const searchInput = document.getElementById('searchInput');
-        const searchButton = document.getElementById('searchButton');
+        const desktopSearchInput = document.getElementById('desktopSearchInput');
+        const desktopSearchButton = document.getElementById('desktopSearchButton');
+        const mobileSearchInput = document.getElementById('mobileSearchInput');
+        const mobileSearchButton = document.getElementById('mobileSearchButton');
         const statusMessage = document.getElementById('statusMessage');
         
         const playerModal = document.getElementById('playerModal');
@@ -211,6 +231,12 @@
         const nextEpisodeButton = document.getElementById('nextEpisodeButton');
 
         const discoverSection = document.getElementById('discoverSection');
+        const contentAreaTitle = document.getElementById('contentAreaTitle');
+        const moviesContainer = document.getElementById('moviesContainer');
+        const tvShowsContainer = document.getElementById('tvShowsContainer');
+        const searchResultsGridContainer = document.getElementById('searchResultsGridContainer');
+        const searchResultsGrid = document.getElementById('searchResultsGrid');
+
         let moviesScrollWrapper = document.getElementById('moviesScrollWrapper'); 
         let tvScrollWrapper = document.getElementById('tvScrollWrapper'); 
         
@@ -285,57 +311,57 @@
             }
         }
 
+        function displaySearchResults(results, query) {
+            moviesContainer.classList.add('hidden');
+            tvShowsContainer.classList.add('hidden');
+            searchResultsGridContainer.classList.remove('hidden');
+            searchResultsGrid.innerHTML = '';
+            contentAreaTitle.textContent = `Search Results for "${query}"`;
 
-        async function searchTMDB(query) {
+            if (!results || results.length === 0) {
+                searchResultsGrid.innerHTML = `<p class="col-span-full text-center text-gray-400">No results found for "${query}".</p>`;
+                return;
+            }
+
+            results.forEach(item => {
+                if (item.media_type === 'movie' || item.media_type === 'tv') {
+                    if (item.poster_path) {
+                         searchResultsGrid.appendChild(createContentCard(item, item.media_type));
+                    }
+                }
+            });
+        }
+
+
+        async function executeSearch(query) {
+            if (!query) return;
             showStatus('');
-            const mainContent = document.getElementById('mainContent');
-            mainContent.innerHTML = ''; 
-            const spinner = createLoadingSpinner();
-            spinner.classList.add('mx-auto', 'my-10'); 
-            mainContent.appendChild(spinner);
+            contentAreaTitle.textContent = `Searching for "${query}"...`;
+            moviesContainer.classList.add('hidden');
+            tvShowsContainer.classList.add('hidden');
+            searchResultsGridContainer.classList.remove('hidden');
+            searchResultsGrid.innerHTML = '';
+            searchResultsGrid.appendChild(createLoadingSpinner());
+
 
             try {
                 const data = await fetchFromTMDB('search/multi', { query });
-                mainContent.innerHTML = ''; 
-
-                if (data.results && data.results.length > 0) {
-                    const firstResult = data.results.find(r => r.media_type === 'movie' || r.media_type === 'tv');
-                    if (firstResult) {
-                        if (firstResult.media_type === 'movie') {
-                            playMovie(firstResult.id, firstResult.title || firstResult.original_name);
-                        } else if (firstResult.media_type === 'tv') {
-                            currentTvShow.id = firstResult.id;
-                            currentTvShow.name = firstResult.name || firstResult.original_name;
-                            currentTvShow.season = 1;
-                            currentTvShow.episode = 1;
-                            await updateAndShowTVControlsInModal();
-                            playTvShow();
-                        }
-                        mainContent.appendChild(discoverSection); 
-                        reinitializeScrollableContent(); 
-                        loadPopularContent(); 
-                    } else {
-                        showStatus('No relevant movie or TV show found.', 'info');
-                        mainContent.appendChild(discoverSection);
-                        reinitializeScrollableContent();
-                        loadPopularContent();
-                    }
-                } else {
-                    showStatus(`No results found for "${query}".`, 'info');
-                    mainContent.appendChild(discoverSection);
-                    reinitializeScrollableContent();
-                    loadPopularContent();
-                }
+                displaySearchResults(data.results, query);
             } catch (error) {
-                mainContent.innerHTML = ''; 
-                mainContent.appendChild(discoverSection); 
-                reinitializeScrollableContent();
-                loadPopularContent();
+                contentAreaTitle.textContent = `Search Results`;
+                searchResultsGrid.innerHTML = `<p class="col-span-full text-center text-red-400">Error during search. Please try again.</p>`;
             }
         }
         
         async function loadPopularContent() {
             showStatus('');
+            contentAreaTitle.textContent = "Most Popular";
+            moviesContainer.classList.remove('hidden');
+            tvShowsContainer.classList.remove('hidden');
+            searchResultsGridContainer.classList.add('hidden');
+            searchResultsGrid.innerHTML = '';
+
+
             if (!moviesScrollWrapper || !tvScrollWrapper) {
                 reinitializeScrollableContent(); 
                 if (!moviesScrollWrapper || !tvScrollWrapper) { 
@@ -534,18 +560,12 @@
             const sandboxPermissions = [
                 "allow-scripts",
                 "allow-same-origin",
-                "allow-forms", // Often needed by embed players for internal functionality
-                "allow-presentation", // For features like Picture-in-Picture
-                "allow-fullscreen" // Essential for user experience
-                // We are intentionally OMITTING:
-                // "allow-popups", 
-                // "allow-popups-to-escape-sandbox",
-                // "allow-top-navigation",
-                // "allow-top-navigation-by-user-activation",
-                // "allow-modals" // Could be too restrictive, but an option if popups are aggressive
+                "allow-forms",
+                "allow-presentation", 
+                "allow-fullscreen" 
             ].join(" ");
 
-            playerContainer.innerHTML = `<iframe src="${url}" sandbox="${sandboxPermissions}" allowfullscreen></iframe>`;
+            playerContainer.innerHTML = `<iframe src="${url}" sandbox="${sandboxPermissions}" allow="fullscreen; autoplay" allowfullscreen></iframe>`;
             playerModal.style.display = "block";
             document.body.style.overflow = 'hidden';
         }
@@ -556,17 +576,34 @@
             document.body.style.overflow = 'auto';
             modalTvControls.classList.add('hidden'); 
         }
-
-        searchButton.addEventListener('click', () => {
-            const query = searchInput.value.trim();
-            if (query) searchTMDB(query);
+        
+        desktopSearchButton.addEventListener('click', () => {
+            const query = desktopSearchInput.value.trim();
+            if (query) executeSearch(query);
         });
-        searchInput.addEventListener('keypress', (e) => {
+        desktopSearchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                const query = searchInput.value.trim();
-                if (query) searchTMDB(query);
+                const query = desktopSearchInput.value.trim();
+                if (query) executeSearch(query);
             }
         });
+        mobileSearchButton.addEventListener('click', () => {
+            const query = mobileSearchInput.value.trim();
+            if (query) {
+                executeSearch(query);
+                mobileMenu.classList.add('hidden');
+            }
+        });
+        mobileSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = mobileSearchInput.value.trim();
+                if (query) {
+                    executeSearch(query);
+                    mobileMenu.classList.add('hidden');
+                }
+            }
+        });
+
 
         modalSeasonSelect.addEventListener('change', async () => {
             currentTvShow.season = parseInt(modalSeasonSelect.value);
@@ -624,32 +661,9 @@
         
         homeLink.addEventListener('click', (e) => {
             e.preventDefault();
-            searchInput.value = '';
-            const mainContent = document.getElementById('mainContent');
-            mainContent.innerHTML = `
-                <div id="statusMessage" class="text-center my-4 h-6"></div>
-                <section id="discoverSection">
-                    <h2 class="text-3xl font-bold mb-6 border-l-4 border-red-600 pl-3">Most Popular</h2>
-                    <div id="discoverGridMovies" class="mb-10">
-                        <h3 class="text-2xl font-semibold mb-4">Movies</h3>
-                        <div class="horizontal-scroll-container">
-                            <button class="scroll-button prev" data-target="moviesScrollWrapper"><i class="fas fa-chevron-left"></i></button>
-                            <div id="moviesScrollWrapper" class="scroll-wrapper flex space-x-4"></div>
-                            <button class="scroll-button next" data-target="moviesScrollWrapper"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                    </div>
-                    <div id="discoverGridTV">
-                        <h3 class="text-2xl font-semibold mb-4">TV Shows</h3>
-                        <div class="horizontal-scroll-container">
-                            <button class="scroll-button prev" data-target="tvScrollWrapper"><i class="fas fa-chevron-left"></i></button>
-                            <div id="tvScrollWrapper" class="scroll-wrapper flex space-x-4"></div>
-                            <button class="scroll-button next" data-target="tvScrollWrapper"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                    </div>
-                </section>`;
-            window.discoverSection = document.getElementById('discoverSection'); 
-            reinitializeScrollableContent();
-            loadPopularContent();
+            desktopSearchInput.value = '';
+            mobileSearchInput.value = '';
+            loadPopularContent(); 
         });
         
         mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
