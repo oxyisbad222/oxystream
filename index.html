@@ -54,64 +54,44 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .horizontal-scroll-container {
-            position: relative;
-        }
+        .horizontal-scroll-container { position: relative; }
         .scroll-wrapper {
-            display: flex;
-            overflow-x: auto;
-            scroll-behavior: smooth;
-            padding-bottom: 1rem; 
-            -ms-overflow-style: none;  
-            scrollbar-width: none;  
+            display: flex; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 1rem; 
+            -ms-overflow-style: none; scrollbar-width: none;  
         }
-        .scroll-wrapper::-webkit-scrollbar {
-            display: none; 
-        }
+        .scroll-wrapper::-webkit-scrollbar { display: none; }
         .scroll-button {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(0, 0, 0, 0.6);
-            color: white;
-            border: none;
-            padding: 0.8rem 0.5rem; 
-            cursor: pointer;
-            z-index: 10;
-            border-radius: 0.25rem;
-            font-size: 1.5rem; 
-            line-height: 1;
-            opacity: 0.7;
-            transition: opacity 0.2s;
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.6); color: white; border: none;
+            padding: 0.8rem 0.5rem; cursor: pointer; z-index: 10;
+            border-radius: 0.25rem; font-size: 1.5rem; line-height: 1;
+            opacity: 0.7; transition: opacity 0.2s;
         }
         .scroll-button:hover { opacity: 1; }
         .scroll-button.prev { left: 5px; }
         .scroll-button.next { right: 5px; }
         .scroll-button:disabled { opacity:0.3; cursor: not-allowed;}
 
-        #modalTvControls {
-            background-color: rgba(0,0,0,0.3);
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 15px;
-        }
+        #modalTvControls { background-color: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; margin-top: 15px; }
         .btn-next-episode {
             background-color: #e50914; color: white; font-weight: bold;
             padding: 0.5rem 1rem; border-radius: 0.25rem;
-            transition: background-color 0.2s ease-in-out; cursor: pointer;
-            border: none;
+            transition: background-color 0.2s ease-in-out; cursor: pointer; border: none;
         }
         .btn-next-episode:hover { background-color: #f40612; }
         .btn-next-episode:disabled { background-color: #555; cursor: not-allowed; }
         
-        #searchResultsGrid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 1rem; 
+        #searchResultsGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+        #searchResultsGrid .card { width: 100%; }
+
+        .filter-btn {
+            padding: 0.4rem 0.8rem; border-radius: 0.25rem; border: 1px solid #555;
+            background-color: #333; color: #ccc; cursor: pointer;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+            font-size: 0.875rem;
         }
-        #searchResultsGrid .card {
-            width: 100%; 
-        }
+        .filter-btn:hover { background-color: #444; }
+        .filter-btn.active { background-color: #e50914; color: white; border-color: #e50914; }
     </style>
 </head>
 <body class="text-gray-200">
@@ -120,12 +100,17 @@
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 <a href="#" id="homeLink" class="text-3xl font-bold netflix-red-text">SkyeMovie</a>
-                <div class="hidden md:flex flex-grow max-w-xl mx-4">
+                <div class="hidden md:flex flex-grow items-center max-w-2xl mx-4">
                     <div class="relative w-full">
-                        <input type="text" id="desktopSearchInput" class="input-field w-full pr-10" placeholder="Search movies or TV shows...">
+                        <input type="text" id="desktopSearchInput" class="input-field w-full pr-10" placeholder="Search...">
                         <button id="desktopSearchButton" class="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-e50914">
                             <i class="fas fa-search"></i>
                         </button>
+                    </div>
+                    <div id="desktopSearchFilters" class="flex space-x-2 ml-3">
+                        <button class="filter-btn active" data-filter="multi">All</button>
+                        <button class="filter-btn" data-filter="movie">Movies</button>
+                        <button class="filter-btn" data-filter="tv">TV</button>
                     </div>
                 </div>
                 <div class="md:hidden">
@@ -142,21 +127,25 @@
                      <i class="fas fa-search"></i>
                  </button>
             </div>
-            <a href="#" id="navDiscoverMobile" class="block text-center py-2 hover:bg-gray-700 rounded-md">Discover Popular</a>
+            <div id="mobileSearchFilters" class="flex justify-center space-x-2">
+                <button class="filter-btn active" data-filter="multi">All</button>
+                <button class="filter-btn" data-filter="movie">Movies</button>
+                <button class="filter-btn" data-filter="tv">TV</button>
+            </div>
+            <a href="#" id="navDiscoverMobile" class="block text-center py-2 hover:bg-gray-700 rounded-md">Discover Top Rated</a>
         </div>
     </header>
     
     <main class="container mx-auto p-4 sm:p-6 lg:p-8" id="mainContent">
         <div id="statusMessage" class="text-center my-4 h-6"></div>
         <section id="discoverSection"> 
-            <h2 id="contentAreaTitle" class="text-3xl font-bold mb-6 border-l-4 border-red-600 pl-3">Most Popular</h2>
+            <h2 id="contentAreaTitle" class="text-3xl font-bold mb-6 border-l-4 border-red-600 pl-3">Top Rated</h2>
             
             <div id="moviesContainer" class="mb-10">
                 <h3 class="text-2xl font-semibold mb-4">Movies</h3>
                 <div class="horizontal-scroll-container">
                     <button class="scroll-button prev" data-target="moviesScrollWrapper"><i class="fas fa-chevron-left"></i></button>
-                    <div id="moviesScrollWrapper" class="scroll-wrapper flex space-x-4">
-                    </div>
+                    <div id="moviesScrollWrapper" class="scroll-wrapper flex space-x-4"></div>
                     <button class="scroll-button next" data-target="moviesScrollWrapper"><i class="fas fa-chevron-right"></i></button>
                 </div>
             </div>
@@ -165,14 +154,20 @@
                 <h3 class="text-2xl font-semibold mb-4">TV Shows</h3>
                  <div class="horizontal-scroll-container">
                     <button class="scroll-button prev" data-target="tvScrollWrapper"><i class="fas fa-chevron-left"></i></button>
-                    <div id="tvScrollWrapper" class="scroll-wrapper flex space-x-4">
-                    </div>
+                    <div id="tvScrollWrapper" class="scroll-wrapper flex space-x-4"></div>
                     <button class="scroll-button next" data-target="tvScrollWrapper"><i class="fas fa-chevron-right"></i></button>
                 </div>
             </div>
             <div id="searchResultsGridContainer" class="hidden mt-8">
-                <div id="searchResultsGrid">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="searchResultsTitle" class="text-2xl font-semibold">Search Results</h2>
+                    <select id="sortResultsSelect" class="select-field w-auto text-sm py-1.5">
+                        <option value="popularity.desc">Sort by Popularity</option>
+                        <option value="date.desc">Date (New to Old)</option>
+                        <option value="date.asc">Date (Old to New)</option>
+                    </select>
                 </div>
+                <div id="searchResultsGrid"></div>
             </div>
         </section>
     </main>
@@ -217,6 +212,8 @@
         const desktopSearchButton = document.getElementById('desktopSearchButton');
         const mobileSearchInput = document.getElementById('mobileSearchInput');
         const mobileSearchButton = document.getElementById('mobileSearchButton');
+        const desktopSearchFilters = document.getElementById('desktopSearchFilters');
+        const mobileSearchFilters = document.getElementById('mobileSearchFilters');
         const statusMessage = document.getElementById('statusMessage');
         
         const playerModal = document.getElementById('playerModal');
@@ -235,7 +232,10 @@
         const moviesContainer = document.getElementById('moviesContainer');
         const tvShowsContainer = document.getElementById('tvShowsContainer');
         const searchResultsGridContainer = document.getElementById('searchResultsGridContainer');
+        const searchResultsTitle = document.getElementById('searchResultsTitle');
         const searchResultsGrid = document.getElementById('searchResultsGrid');
+        const sortResultsSelect = document.getElementById('sortResultsSelect');
+
 
         let moviesScrollWrapper = document.getElementById('moviesScrollWrapper'); 
         let tvScrollWrapper = document.getElementById('tvScrollWrapper'); 
@@ -245,15 +245,12 @@
         const mobileMenu = document.getElementById('mobileMenu');
         const navDiscoverMobile = document.getElementById('navDiscoverMobile');
 
-        let currentTvShow = {
-            id: null,
-            name: null,
-            season: 1,
-            episode: 1,
-            totalSeasons: 0,
-            episodesInCurrentSeason: []
-        };
+        let currentTvShow = { id: null, name: null, season: 1, episode: 1, totalSeasons: 0, episodesInCurrentSeason: [] };
         let seasonDetailsCache = {}; 
+        let currentSearchFilter = 'multi'; // 'multi', 'movie', 'tv'
+        let currentSearchResults = [];
+        let currentSearchQuery = '';
+
 
         function showStatus(message, type = 'info') {
             statusMessage.textContent = message;
@@ -270,22 +267,13 @@
         }
 
         async function fetchFromTMDB(tmdbEndpoint, tmdbParams = {}) {
-            const proxyUrlParams = new URLSearchParams({
-                endpoint: tmdbEndpoint,
-                ...tmdbParams
-            });
+            const proxyUrlParams = new URLSearchParams({ endpoint: tmdbEndpoint, ...tmdbParams });
             const proxyUrl = `/api/tmdb-proxy?${proxyUrlParams.toString()}`;
-
             try {
                 const response = await fetch(proxyUrl);
                 const contentType = response.headers.get("content-type");
-
                 if (!response.ok) {
-                    let errorPayload = { 
-                        message: `Proxy API Error: ${response.status} ${response.statusText}`,
-                        status: response.status,
-                        contentType: contentType
-                    };
+                    let errorPayload = { message: `Proxy API Error: ${response.status} ${response.statusText}`, status: response.status, contentType: contentType };
                     if (contentType && contentType.includes("application/json")) {
                         const errorData = await response.json().catch(() => ({}));
                         errorPayload.details = errorData.error || errorData.details || errorData.message || errorData;
@@ -295,15 +283,13 @@
                     console.error("Proxy Error Payload:", errorPayload);
                     throw new Error(typeof errorPayload.details === 'string' ? errorPayload.details : errorPayload.message);
                 }
-
                 if (contentType && contentType.includes("application/json")) {
                     return await response.json();
                 } else {
                     const rawText = await response.text().catch(() => "Could not read response body.");
-                    console.error("Expected JSON response from proxy, but received:", contentType, rawText.substring(0, 200));
+                    console.error("Expected JSON from proxy, received:", contentType, rawText.substring(0, 200));
                     throw new Error(`Unexpected content type from proxy: ${contentType}. Expected JSON. Received: ${rawText.substring(0,100)}...`);
                 }
-
             } catch (error) {
                 console.error('Full error in fetchFromTMDB:', error);
                 showStatus(error.message || "An unknown API error occurred.", 'error');
@@ -311,240 +297,193 @@
             }
         }
 
-        function displaySearchResults(results, query) {
-            moviesContainer.classList.add('hidden');
-            tvShowsContainer.classList.add('hidden');
-            searchResultsGridContainer.classList.remove('hidden');
-            searchResultsGrid.innerHTML = '';
-            contentAreaTitle.textContent = `Search Results for "${query}"`;
+        function sortAndDisplayResults() {
+            let resultsToDisplay = [...currentSearchResults];
+            const sortBy = sortResultsSelect.value;
 
-            if (!results || results.length === 0) {
-                searchResultsGrid.innerHTML = `<p class="col-span-full text-center text-gray-400">No results found for "${query}".</p>`;
+            resultsToDisplay.sort((a, b) => {
+                if (sortBy === 'popularity.desc') {
+                    return (b.popularity || 0) - (a.popularity || 0);
+                } else if (sortBy === 'date.desc') {
+                    const dateA = new Date(a.release_date || a.first_air_date || 0);
+                    const dateB = new Date(b.release_date || b.first_air_date || 0);
+                    return dateB - dateA;
+                } else if (sortBy === 'date.asc') {
+                    const dateA = new Date(a.release_date || a.first_air_date || 0);
+                    const dateB = new Date(b.release_date || b.first_air_date || 0);
+                    return dateA - dateB;
+                }
+                return 0;
+            });
+
+            searchResultsGrid.innerHTML = '';
+            if (resultsToDisplay.length === 0 && currentSearchQuery) {
+                searchResultsGrid.innerHTML = `<p class="col-span-full text-center text-gray-400">No results found for "${currentSearchQuery}".</p>`;
                 return;
             }
-
-            results.forEach(item => {
-                if (item.media_type === 'movie' || item.media_type === 'tv') {
-                    if (item.poster_path) {
-                         searchResultsGrid.appendChild(createContentCard(item, item.media_type));
-                    }
+            resultsToDisplay.forEach(item => {
+                if ((item.media_type === 'movie' || item.media_type === 'tv') && item.poster_path) {
+                     searchResultsGrid.appendChild(createContentCard(item, item.media_type));
                 }
             });
         }
 
 
+        function displaySearchResultsUI(results, query) {
+            moviesContainer.classList.add('hidden');
+            tvShowsContainer.classList.add('hidden');
+            contentAreaTitle.classList.add('hidden'); // Hide "Top Rated" title
+            searchResultsGridContainer.classList.remove('hidden');
+            searchResultsTitle.textContent = `Search Results for "${query}"`;
+            currentSearchResults = results.filter(item => (item.media_type === 'movie' || item.media_type === 'tv') && item.poster_path); // Store results with posters
+            sortResultsSelect.value = 'popularity.desc'; // Default sort
+            sortAndDisplayResults();
+        }
+
         async function executeSearch(query) {
             if (!query) return;
+            currentSearchQuery = query; // Store query for sorting
             showStatus('');
-            contentAreaTitle.textContent = `Searching for "${query}"...`;
+            contentAreaTitle.classList.add('hidden');
             moviesContainer.classList.add('hidden');
             tvShowsContainer.classList.add('hidden');
             searchResultsGridContainer.classList.remove('hidden');
+            searchResultsTitle.textContent = `Searching for "${query}"...`;
             searchResultsGrid.innerHTML = '';
             searchResultsGrid.appendChild(createLoadingSpinner());
 
-
+            let endpoint = 'search/multi';
+            if (currentSearchFilter === 'movie') endpoint = 'search/movie';
+            else if (currentSearchFilter === 'tv') endpoint = 'search/tv';
+            
             try {
-                const data = await fetchFromTMDB('search/multi', { query });
-                displaySearchResults(data.results, query);
+                const data = await fetchFromTMDB(endpoint, { query });
+                displaySearchResultsUI(data.results, query);
             } catch (error) {
-                contentAreaTitle.textContent = `Search Results`;
+                searchResultsTitle.textContent = `Search Results`;
                 searchResultsGrid.innerHTML = `<p class="col-span-full text-center text-red-400">Error during search. Please try again.</p>`;
             }
         }
         
-        async function loadPopularContent() {
+        async function loadTopRatedContent() {
             showStatus('');
-            contentAreaTitle.textContent = "Most Popular";
+            contentAreaTitle.textContent = "Top Rated";
+            contentAreaTitle.classList.remove('hidden');
             moviesContainer.classList.remove('hidden');
             tvShowsContainer.classList.remove('hidden');
             searchResultsGridContainer.classList.add('hidden');
             searchResultsGrid.innerHTML = '';
 
-
             if (!moviesScrollWrapper || !tvScrollWrapper) {
                 reinitializeScrollableContent(); 
                 if (!moviesScrollWrapper || !tvScrollWrapper) { 
-                     showStatus("UI elements missing. Please refresh.", "error");
-                     return;
+                     showStatus("UI elements missing. Please refresh.", "error"); return;
                 }
             }
-            moviesScrollWrapper.innerHTML = ''; 
-            tvScrollWrapper.innerHTML = '';
-            const movieSpinner = createLoadingSpinner();
-            const tvSpinner = createLoadingSpinner();
-            moviesScrollWrapper.appendChild(movieSpinner);
-            tvScrollWrapper.appendChild(tvSpinner);
-            updateScrollButtons(moviesScrollWrapper);
-            updateScrollButtons(tvScrollWrapper);
+            moviesScrollWrapper.innerHTML = ''; tvScrollWrapper.innerHTML = '';
+            const movieSpinner = createLoadingSpinner(); const tvSpinner = createLoadingSpinner();
+            moviesScrollWrapper.appendChild(movieSpinner); tvScrollWrapper.appendChild(tvSpinner);
+            updateScrollButtons(moviesScrollWrapper); updateScrollButtons(tvScrollWrapper);
 
             try {
                 const [moviesData, tvData] = await Promise.all([
-                    fetchFromTMDB('movie/popular'),
-                    fetchFromTMDB('tv/popular')
+                    fetchFromTMDB('movie/top_rated'), fetchFromTMDB('tv/top_rated')
                 ]);
-
                 moviesScrollWrapper.innerHTML = '';
                 if (moviesData.results && moviesData.results.length > 0) {
                     moviesData.results.forEach(movie => moviesScrollWrapper.appendChild(createContentCard(movie, 'movie')));
-                } else {
-                     moviesScrollWrapper.innerHTML = '<p class="text-center p-4">Could not load popular movies.</p>';
-                }
+                } else { moviesScrollWrapper.innerHTML = '<p class="p-4">Could not load top rated movies.</p>'; }
                 updateScrollButtons(moviesScrollWrapper);
 
                 tvScrollWrapper.innerHTML = '';
                 if (tvData.results && tvData.results.length > 0) {
                     tvData.results.forEach(tvShow => tvScrollWrapper.appendChild(createContentCard(tvShow, 'tv')));
-                } else {
-                    tvScrollWrapper.innerHTML = '<p class="text-center p-4">Could not load popular TV shows.</p>';
-                }
+                } else { tvScrollWrapper.innerHTML = '<p class="p-4">Could not load top rated TV shows.</p>'; }
                 updateScrollButtons(tvScrollWrapper);
-
             } catch (error) {
                  if (!moviesScrollWrapper.hasChildNodes() || moviesScrollWrapper.firstChild.classList.contains('loading-spinner')) {
-                    moviesScrollWrapper.innerHTML = `<p class="text-center p-4 text-red-400">Error loading movies.</p>`;
+                    moviesScrollWrapper.innerHTML = `<p class="p-4 text-red-400">Error loading movies.</p>`;
                  }
                  if (!tvScrollWrapper.hasChildNodes() || tvScrollWrapper.firstChild.classList.contains('loading-spinner')) {
-                    tvScrollWrapper.innerHTML = `<p class="text-center p-4 text-red-400">Error loading TV shows.</p>`;
+                    tvScrollWrapper.innerHTML = `<p class="p-4 text-red-400">Error loading TV shows.</p>`;
                  }
             }
         }
 
         function createContentCard(item, type) {
-            const card = document.createElement('div');
-            card.className = 'card';
+            const card = document.createElement('div'); card.className = 'card';
             const title = type === 'movie' ? (item.title || item.original_name) : (item.name || item.original_name);
             const posterPath = item.poster_path ? `${TMDB_IMG_BASE_URL}${item.poster_path}` : 'https://placehold.co/180x270/1f1f1f/e50914?text=No+Poster';
-            
             card.innerHTML = `
                 <img src="${posterPath}" alt="${title} Poster" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/180x270/1f1f1f/e50914?text=Error';">
-                <div class="p-2">
-                    <h4 class="font-semibold truncate text-sm" title="${title}">${title}</h4>
-                    <p class="text-xs text-gray-400">${type === 'movie' ? 'Movie' : 'TV Show'}</p>
-                </div>
-            `;
+                <div class="p-2"><h4 class="font-semibold truncate text-sm" title="${title}">${title}</h4><p class="text-xs text-gray-400">${type === 'movie' ? 'Movie' : 'TV Show'}</p></div>`;
             card.addEventListener('click', () => {
-                if (type === 'movie') {
-                    playMovie(item.id, title);
-                } else {
-                    currentTvShow.id = item.id;
-                    currentTvShow.name = title;
-                    currentTvShow.season = 1; 
-                    currentTvShow.episode = 1;
-                    updateAndShowTVControlsInModal();
-                    playTvShow(); 
+                if (type === 'movie') playMovie(item.id, title);
+                else {
+                    currentTvShow.id = item.id; currentTvShow.name = title; currentTvShow.season = 1; currentTvShow.episode = 1;
+                    updateAndShowTVControlsInModal(); playTvShow(); 
                 }
             });
             return card;
         }
         
         async function updateAndShowTVControlsInModal() {
-            if (!currentTvShow.id) {
-                modalTvControls.classList.add('hidden');
-                return;
-            }
-
+            if (!currentTvShow.id) { modalTvControls.classList.add('hidden'); return; }
             modalTvShowTitleEl.textContent = currentTvShow.name || 'Selected TV Show';
             modalTvControls.classList.remove('hidden');
-
-            modalSeasonSelect.disabled = true;
-            modalEpisodeSelect.disabled = true;
-            modalSeasonSelect.innerHTML = '<option>Loading...</option>';
-            modalEpisodeSelect.innerHTML = '<option>Loading...</option>';
+            modalSeasonSelect.disabled = true; modalEpisodeSelect.disabled = true;
+            modalSeasonSelect.innerHTML = '<option>Loading...</option>'; modalEpisodeSelect.innerHTML = '<option>Loading...</option>';
             nextEpisodeButton.disabled = true;
-
             try {
                 const tvDetails = await fetchFromTMDB(`tv/${currentTvShow.id}`);
                 currentTvShow.totalSeasons = tvDetails.number_of_seasons;
                 let validSeasons = tvDetails.seasons.filter(s => s.season_number > 0 && s.episode_count > 0);
-                 if (validSeasons.length === 0 && tvDetails.seasons.length > 0) {
-                    validSeasons = tvDetails.seasons.filter(s => s.episode_count > 0); 
-                }
-
+                if (validSeasons.length === 0 && tvDetails.seasons.length > 0) validSeasons = tvDetails.seasons.filter(s => s.episode_count > 0); 
                 populateDropdown(modalSeasonSelect, validSeasons, 'season_number', 'name', 'S');
-                if (validSeasons.find(s => s.season_number === currentTvShow.season)) {
-                    modalSeasonSelect.value = currentTvShow.season;
-                } else if (validSeasons.length > 0) {
-                    currentTvShow.season = validSeasons[0].season_number; 
-                    modalSeasonSelect.value = currentTvShow.season;
-                }
+                if (validSeasons.find(s => s.season_number === currentTvShow.season)) modalSeasonSelect.value = currentTvShow.season;
+                else if (validSeasons.length > 0) { currentTvShow.season = validSeasons[0].season_number; modalSeasonSelect.value = currentTvShow.season; }
                 modalSeasonSelect.disabled = false;
-                
                 await fetchEpisodesForModalSeason(currentTvShow.id, currentTvShow.season);
-            } catch (error) {
-                modalSeasonSelect.innerHTML = '<option>Error</option>';
-                modalEpisodeSelect.innerHTML = '<option>Error</option>';
-            }
+            } catch (error) { modalSeasonSelect.innerHTML = '<option>Error</option>'; modalEpisodeSelect.innerHTML = '<option>Error</option>'; }
         }
         
         async function fetchEpisodesForModalSeason(tvId, seasonNumber) {
-            modalEpisodeSelect.disabled = true;
-            modalEpisodeSelect.innerHTML = '<option>Loading...</option>';
-            nextEpisodeButton.disabled = true;
-            const cacheKey = `${tvId}-${seasonNumber}`;
-
+            modalEpisodeSelect.disabled = true; modalEpisodeSelect.innerHTML = '<option>Loading...</option>';
+            nextEpisodeButton.disabled = true; const cacheKey = `${tvId}-${seasonNumber}`;
             try {
                 let seasonDetails;
-                if (seasonDetailsCache[cacheKey]) {
-                    seasonDetails = seasonDetailsCache[cacheKey];
-                } else {
-                    seasonDetails = await fetchFromTMDB(`tv/${tvId}/season/${seasonNumber}`);
-                    seasonDetailsCache[cacheKey] = seasonDetails; 
-                }
-                
+                if (seasonDetailsCache[cacheKey]) seasonDetails = seasonDetailsCache[cacheKey];
+                else { seasonDetails = await fetchFromTMDB(`tv/${tvId}/season/${seasonNumber}`); seasonDetailsCache[cacheKey] = seasonDetails; }
                 currentTvShow.episodesInCurrentSeason = seasonDetails.episodes || [];
                 populateDropdown(modalEpisodeSelect, currentTvShow.episodesInCurrentSeason, 'episode_number', 'name', 'E');
-                
-                if (currentTvShow.episodesInCurrentSeason.find(ep => ep.episode_number === currentTvShow.episode)) {
-                    modalEpisodeSelect.value = currentTvShow.episode;
-                } else if (currentTvShow.episodesInCurrentSeason.length > 0) {
-                    currentTvShow.episode = currentTvShow.episodesInCurrentSeason[0].episode_number; 
-                    modalEpisodeSelect.value = currentTvShow.episode;
-                }
-                
-                modalEpisodeSelect.disabled = false;
-                updateNextEpisodeButtonState();
-
-            } catch (error) {
-                modalEpisodeSelect.innerHTML = '<option>Error</option>';
-            }
+                if (currentTvShow.episodesInCurrentSeason.find(ep => ep.episode_number === currentTvShow.episode)) modalEpisodeSelect.value = currentTvShow.episode;
+                else if (currentTvShow.episodesInCurrentSeason.length > 0) { currentTvShow.episode = currentTvShow.episodesInCurrentSeason[0].episode_number; modalEpisodeSelect.value = currentTvShow.episode; }
+                modalEpisodeSelect.disabled = false; updateNextEpisodeButtonState();
+            } catch (error) { modalEpisodeSelect.innerHTML = '<option>Error</option>'; }
         }
 
         function populateDropdown(selectEl, items, valueKey, textKey, prefix = '') {
             selectEl.innerHTML = '';
-            if (!items || items.length === 0) {
-                selectEl.innerHTML = `<option value="">N/A</option>`;
-                return;
-            }
+            if (!items || items.length === 0) { selectEl.innerHTML = `<option value="">N/A</option>`; return; }
             items.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item[valueKey];
+                const option = document.createElement('option'); option.value = item[valueKey];
                 option.textContent = `${prefix}${item[valueKey]}${item[textKey] && item[textKey] !== `Episode ${item[valueKey]}` ? `: ${item[textKey]}` : ''}`;
                 selectEl.appendChild(option);
             });
         }
 
         function updateNextEpisodeButtonState() {
-            if (!currentTvShow.id || currentTvShow.episodesInCurrentSeason.length === 0) {
-                nextEpisodeButton.disabled = true;
-                return;
-            }
+            if (!currentTvShow.id || currentTvShow.episodesInCurrentSeason.length === 0) { nextEpisodeButton.disabled = true; return; }
             const currentEpisodeIndex = currentTvShow.episodesInCurrentSeason.findIndex(ep => ep.episode_number === currentTvShow.episode);
             const isLastEpisodeInSeason = currentEpisodeIndex === currentTvShow.episodesInCurrentSeason.length - 1;
             const isLastSeason = currentTvShow.season === currentTvShow.totalSeasons;
-
-            if (isLastEpisodeInSeason && isLastSeason) {
-                nextEpisodeButton.disabled = true;
-            } else {
-                nextEpisodeButton.disabled = false;
-            }
+            nextEpisodeButton.disabled = isLastEpisodeInSeason && isLastSeason;
         }
         
         function playMovie(id, title) {
             modalTvControls.classList.add('hidden');
             const embedURL = `${ANYEMBED_BASE_URL}/movie/${id}?server=${DEFAULT_SERVER}`;
-            playerModalTitle.textContent = title || 'Movie';
-            loadPlayer(embedURL);
+            playerModalTitle.textContent = title || 'Movie'; loadPlayer(embedURL);
         }
 
         function playTvShow() {
@@ -552,84 +491,68 @@
             modalTvControls.classList.remove('hidden'); 
             const embedURL = `${ANYEMBED_BASE_URL}/tv/${currentTvShow.id}/${currentTvShow.season}/${currentTvShow.episode}?server=${DEFAULT_SERVER}`;
             playerModalTitle.textContent = `${currentTvShow.name || 'TV Show'} (S${currentTvShow.season} E${currentTvShow.episode})`;
-            loadPlayer(embedURL);
-            updateNextEpisodeButtonState(); 
+            loadPlayer(embedURL); updateNextEpisodeButtonState(); 
         }
 
         function loadPlayer(url) {
-            const sandboxPermissions = [
-                "allow-scripts",
-                "allow-same-origin",
-                "allow-forms",
-                "allow-presentation", 
-                "allow-fullscreen" 
-            ].join(" ");
-
+            const sandboxPermissions = ["allow-scripts", "allow-same-origin", "allow-forms", "allow-presentation", "allow-fullscreen"].join(" ");
             playerContainer.innerHTML = `<iframe src="${url}" sandbox="${sandboxPermissions}" allow="fullscreen; autoplay" allowfullscreen></iframe>`;
-            playerModal.style.display = "block";
-            document.body.style.overflow = 'hidden';
+            playerModal.style.display = "block"; document.body.style.overflow = 'hidden';
         }
 
         function closePlayerModal() {
-            playerModal.style.display = "none";
-            playerContainer.innerHTML = ""; 
-            document.body.style.overflow = 'auto';
-            modalTvControls.classList.add('hidden'); 
+            playerModal.style.display = "none"; playerContainer.innerHTML = ""; 
+            document.body.style.overflow = 'auto'; modalTvControls.classList.add('hidden'); 
         }
         
-        desktopSearchButton.addEventListener('click', () => {
-            const query = desktopSearchInput.value.trim();
-            if (query) executeSearch(query);
+        function setSearchFilter(filterType, filterButtonContainer) {
+            currentSearchFilter = filterType;
+            filterButtonContainer.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            filterButtonContainer.querySelector(`.filter-btn[data-filter="${filterType}"]`).classList.add('active');
+        }
+
+        [desktopSearchFilters, mobileSearchFilters].forEach(container => {
+            container.addEventListener('click', (e) => {
+                if (e.target.classList.contains('filter-btn')) {
+                    const filterType = e.target.dataset.filter;
+                    setSearchFilter(filterType, desktopSearchFilters); // Keep both in sync
+                    setSearchFilter(filterType, mobileSearchFilters);
+                    // If a search query exists, re-execute search with new filter
+                    const query = desktopSearchInput.value.trim() || mobileSearchInput.value.trim();
+                    if (searchResultsGridContainer.classList.contains('hidden') === false && query) { // Only re-search if results are visible
+                        executeSearch(query);
+                    }
+                }
+            });
         });
-        desktopSearchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const query = desktopSearchInput.value.trim();
-                if (query) executeSearch(query);
-            }
-        });
-        mobileSearchButton.addEventListener('click', () => {
+        
+        desktopSearchButton.addEventListener('click', () => { executeSearch(desktopSearchInput.value.trim()); });
+        desktopSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') executeSearch(desktopSearchInput.value.trim()); });
+        mobileSearchButton.addEventListener('click', () => { 
             const query = mobileSearchInput.value.trim();
-            if (query) {
-                executeSearch(query);
-                mobileMenu.classList.add('hidden');
-            }
+            if (query) { executeSearch(query); mobileMenu.classList.add('hidden');}
         });
-        mobileSearchInput.addEventListener('keypress', (e) => {
+        mobileSearchInput.addEventListener('keypress', (e) => { 
             if (e.key === 'Enter') {
                 const query = mobileSearchInput.value.trim();
-                if (query) {
-                    executeSearch(query);
-                    mobileMenu.classList.add('hidden');
-                }
+                if (query) { executeSearch(query); mobileMenu.classList.add('hidden'); }
             }
         });
-
+        sortResultsSelect.addEventListener('change', sortAndDisplayResults);
 
         modalSeasonSelect.addEventListener('change', async () => {
-            currentTvShow.season = parseInt(modalSeasonSelect.value);
-            currentTvShow.episode = 1; 
-            await fetchEpisodesForModalSeason(currentTvShow.id, currentTvShow.season);
-            playTvShow();
+            currentTvShow.season = parseInt(modalSeasonSelect.value); currentTvShow.episode = 1; 
+            await fetchEpisodesForModalSeason(currentTvShow.id, currentTvShow.season); playTvShow();
         });
-
-
-        modalEpisodeSelect.addEventListener('change', () => {
-            currentTvShow.episode = parseInt(modalEpisodeSelect.value);
-            playTvShow();
-        });
-
+        modalEpisodeSelect.addEventListener('change', () => { currentTvShow.episode = parseInt(modalEpisodeSelect.value); playTvShow(); });
         nextEpisodeButton.addEventListener('click', async () => {
             if (!currentTvShow.id || nextEpisodeButton.disabled) return;
-
             const currentEpisodeIndex = currentTvShow.episodesInCurrentSeason.findIndex(ep => ep.episode_number === currentTvShow.episode);
-            
             if (currentEpisodeIndex < currentTvShow.episodesInCurrentSeason.length - 1) {
                 currentTvShow.episode = currentTvShow.episodesInCurrentSeason[currentEpisodeIndex + 1].episode_number;
-                modalEpisodeSelect.value = currentTvShow.episode; 
-                playTvShow();
+                modalEpisodeSelect.value = currentTvShow.episode; playTvShow();
             } else if (currentTvShow.season < currentTvShow.totalSeasons) {
-                currentTvShow.season++;
-                currentTvShow.episode = 1; 
+                currentTvShow.season++; currentTvShow.episode = 1; 
                 modalSeasonSelect.value = currentTvShow.season; 
             }
         });
@@ -661,53 +584,35 @@
         
         homeLink.addEventListener('click', (e) => {
             e.preventDefault();
-            desktopSearchInput.value = '';
-            mobileSearchInput.value = '';
-            loadPopularContent(); 
+            desktopSearchInput.value = ''; mobileSearchInput.value = '';
+            loadTopRatedContent(); 
         });
         
         mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
-        navDiscoverMobile.addEventListener('click', (e) => {
-            e.preventDefault();
-            mobileMenu.classList.add('hidden');
-            homeLink.click();
-        });
+        navDiscoverMobile.addEventListener('click', (e) => { e.preventDefault(); mobileMenu.classList.add('hidden'); homeLink.click(); });
 
         function handleScrollButtonClick(event) {
-            const button = event.currentTarget;
-            const targetId = button.dataset.target;
-            const scrollWrapper = document.getElementById(targetId);
-            if (!scrollWrapper) return;
-
+            const button = event.currentTarget; const targetId = button.dataset.target;
+            const scrollWrapper = document.getElementById(targetId); if (!scrollWrapper) return;
             const scrollAmount = scrollWrapper.clientWidth * 0.8; 
-            if (button.classList.contains('next')) {
-                scrollWrapper.scrollLeft += scrollAmount;
-            } else if (button.classList.contains('prev')) {
-                scrollWrapper.scrollLeft -= scrollAmount;
-            }
+            if (button.classList.contains('next')) scrollWrapper.scrollLeft += scrollAmount;
+            else if (button.classList.contains('prev')) scrollWrapper.scrollLeft -= scrollAmount;
         }
          function updateScrollButtons(scrollWrapper) {
             if (!scrollWrapper || !scrollWrapper.parentElement) return;
             const prevButton = scrollWrapper.parentElement.querySelector('.scroll-button.prev');
             const nextButton = scrollWrapper.parentElement.querySelector('.scroll-button.next');
             if(!prevButton || !nextButton) return;
-
             const isScrollable = scrollWrapper.scrollWidth > scrollWrapper.clientWidth;
-            if (!isScrollable) {
-                prevButton.style.display = 'none';
-                nextButton.style.display = 'none';
-                return;
-            }
-            prevButton.style.display = 'block';
-            nextButton.style.display = 'block';
-
+            if (!isScrollable) { prevButton.style.display = 'none'; nextButton.style.display = 'none'; return; }
+            prevButton.style.display = 'block'; nextButton.style.display = 'block';
             prevButton.disabled = scrollWrapper.scrollLeft <= 0;
             nextButton.disabled = scrollWrapper.scrollLeft + scrollWrapper.clientWidth >= scrollWrapper.scrollWidth - 5; 
         }
 
         document.getElementById('currentYear').textContent = new Date().getFullYear();
         reinitializeScrollableContent(); 
-        loadPopularContent();
+        loadTopRatedContent();
 
     </script>
 </body>
