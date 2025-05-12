@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OxyStream</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #E50914; /* Netflix Red */
+            --secondary-color: #141414; /* Netflix Black */
+            --card-bg-color: #222222;
+            --text-color: #FFFFFF;
+            --text-muted-color: #a0aec0; /* Tailwind gray-500 */
+            --hover-color: #B20710; /* Darker Netflix Red */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        /* Custom scrollbar for a more modern look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--secondary-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--primary-color);
+            border-radius: 10px;
+            border: 2px solid var(--secondary-color);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: var(--hover-color);
+        }
+
+        .oxy-header {
+            background-color: rgba(20, 20, 20, 0.9); /* Slightly transparent black */
+            backdrop-filter: blur(10px); /* Frosted glass effect */
+        }
+
+        .oxy-title {
+            color: var(--primary-color);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .oxy-input {
+            background-color: #333;
+            border: 1px solid #555;
+            color: var(--text-color);
+        }
+        .oxy-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.3); /* Red glow */
+        }
+
+        .oxy-btn {
+            background-color: var(--primary-color);
+            transition: background-color 0.3s ease;
+        }
+        .oxy-btn:hover {
+            background-color: var(--hover-color);
+        }
+
+        .oxy-btn-secondary {
+            background-color: #4F4F4F; /* Darker gray for secondary actions */
+        }
+        .oxy-btn-secondary:hover {
+            background-color: #6A6A6A;
+        }
+
+        .movie-card {
+            background-color: var(--card-bg-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden; /* Ensures image border radius is respected */
+        }
+        .movie-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+        }
+        .movie-card img {
+            aspect-ratio: 2 / 3; /* Common movie poster aspect ratio */
+            object-fit: cover;
+        }
+        .movie-card-title {
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* Limit title to 2 lines */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-height: 2.5em; /* Ensure space for two lines */
+        }
+
+        .section-title {
+            color: var(--text-color);
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .oxy-select {
+            background-color: #333;
+            border: 1px solid #555;
+            color: var(--text-color);
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0aec0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.5em 1.5em;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        .oxy-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.3);
+        }
+
+        #videoPlayer {
+            border: 3px solid var(--primary-color);
+            box-shadow: 0 0 20px rgba(229, 9, 20, 0.3);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 8px solid;
+            border-color: #E50914 #0000; /* Red and transparent */
+            animation: spinner-animation 1.2s infinite linear;
+        }
+        @keyframes spinner-animation {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            z-index: 2000;
+            font-size: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .message-box.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .message-box.error {
+            background-color: var(--primary-color);
+        }
+        .message-box.success {
+            background-color: #28a745; /* Green for success */
+        }
+
+    </style>
+</head>
+<body class="bg-secondary-color text-text-color">
+
+    <header class="oxy-header sticky top-0 z-50 p-4 shadow-lg">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center">
+            <h1 class="oxy-title text-3xl sm:text-4xl mb-4 sm:mb-0 cursor-pointer" onclick="showTrendingView()">OxyStream</h1>
+            <div class="flex w-full sm:w-auto">
+                <input type="text" id="searchInput" class="oxy-input p-2 rounded-l-md flex-grow focus:outline-none" placeholder="Search movies or TV shows...">
+                <button id="searchButton" class="oxy-btn text-white p-2 rounded-r-md">Search</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4">
+        <div id="loadingIndicator" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-[1000]" style="display: none;">
+            <div class="spinner"></div>
+        </div>
+
+        <div id="messageBox" class="message-box"></div>
+
+        <button id="backButton" class="oxy-btn-secondary text-white py-2 px-4 rounded-md mb-6 hidden" onclick="handleBack()">
+            &larr; Back
+        </button>
+
+        <section id="trendingSection">
+            <h2 class="section-title text-2xl font-semibold mb-6 pb-2">Trending Now</h2>
+            <div id="trendingMoviesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                </div>
+        </section>
+
+        <section id="searchResultsSection" class="hidden">
+            <h2 id="searchResultsTitle" class="section-title text-2xl font-semibold mb-6 pb-2">Search Results</h2>
+            <div id="searchResultsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                </div>
+        </section>
+
+        <section id="movieDetailsSection" class="hidden">
+            <div id="movieDetailsContent" class="bg-card-bg-color p-6 rounded-lg shadow-xl flex flex-col md:flex-row gap-6">
+                </div>
+            <div id="episodesAndServersSection" class="mt-6 bg-card-bg-color p-6 rounded-lg shadow-xl">
+                 </div>
+        </section>
+
+        <section id="videoPlayerSection" class="hidden mt-6">
+            <h2 id="videoPlayerTitle" class="section-title text-2xl font-semibold mb-4 pb-2">Now Playing</h2>
+            <div class="aspect-w-16 aspect-h-9"> <video id="videoPlayer" class="w-full h-full rounded-lg" controls autoplay></video>
+            </div>
+            <p id="currentSourceInfo" class="text-center mt-2 text-sm text-text-muted-color"></p>
+        </section>
+    </main>
+
+    <footer class="text-center p-6 mt-8 border-t border-gray-700">
+        <p class="text-text-muted-color">&copy; <span id="currentYear"></span> OxyStream. All rights reserved. Powered by Consumet API.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest" defer></script>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'https://consumet-api-two-bay.vercel.app'; // Using a reliable public instance
+        const FLIXHQ_PROVIDER = 'flixhq';
+
+        // Color constants for placeholders (derived from CSS variables)
+        const PLACEHOLDER_BG_COLOR = '222222'; // from --card-bg-color: #222222
+        const PLACEHOLDER_TEXT_COLOR = 'E50914'; // from --primary-color: #E50914
+
+
+        // DOM Elements
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const backButton = document.getElementById('backButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const messageBox = document.getElementById('messageBox');
+
+        const trendingSection = document.getElementById('trendingSection');
+        const trendingMoviesGrid = document.getElementById('trendingMoviesGrid');
+        const searchResultsSection = document.getElementById('searchResultsSection');
+        const searchResultsGrid = document.getElementById('searchResultsGrid');
+        const searchResultsTitle = document.getElementById('searchResultsTitle');
+
+        const movieDetailsSection = document.getElementById('movieDetailsSection');
+        const movieDetailsContent = document.getElementById('movieDetailsContent');
+        const episodesAndServersSection = document.getElementById('episodesAndServersSection');
+
+        const videoPlayerSection = document.getElementById('videoPlayerSection');
+        const videoPlayerTitle = document.getElementById('videoPlayerTitle');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const currentSourceInfo = document.getElementById('currentSourceInfo');
+
+        // State Management - To keep track of the current state of the application
+        let currentView = 'trending'; // Possible values: 'trending', 'search', 'details', 'player'
+        let previousView = 'trending'; // To enable navigating back correctly
+        let currentMediaId = null; // Stores the ID of the currently selected movie/show
+        let currentEpisodeId = null; // Stores the ID of the currently selected episode
+        let currentMovieInfo = null; // To store fetched movie details for reuse (e.g., player title)
+        let hlsInstance = null; // To manage HLS.js instance for HLS video playback
+
+        // --- Utility Functions ---
+
+        /**
+         * Shows the loading spinner.
+         */
+        function showLoading() { loadingIndicator.style.display = 'flex'; }
+
+        /**
+         * Hides the loading spinner.
+         */
+        function hideLoading() { loadingIndicator.style.display = 'none'; }
+
+        /**
+         * Displays a message (error or success) to the user.
+         * @param {string} message - The message to display.
+         * @param {string} type - 'error' or 'success'.
+         * @param {number} duration - How long to display the message in milliseconds.
+         */
+        function showMessage(message, type = 'error', duration = 4000) {
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type} show`; // Add 'show' class for visibility
+            // Hide the message after the specified duration
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, duration);
+        }
+
+        /**
+         * Updates the visible section of the page.
+         * @param {string} viewToShow - The view to make active ('trending', 'search', 'details', 'player').
+         */
+        function updateView(viewToShow) {
+            previousView = currentView; // Store the current view before changing
+            currentView = viewToShow;
+
+            // Hide all major sections initially
+            trendingSection.classList.add('hidden');
+            searchResultsSection.classList.add('hidden');
+            movieDetailsSection.classList.add('hidden');
+            videoPlayerSection.classList.add('hidden');
+            backButton.classList.add('hidden'); // Hide back button by default
+
+            window.scrollTo(0, 0); // Scroll to the top of the page on view change
+
+            // Show the requested section
+            switch (viewToShow) {
+                case 'trending':
+                    trendingSection.classList.remove('hidden');
+                    break;
+                case 'search':
+                    searchResultsSection.classList.remove('hidden');
+                    break;
+                case 'details':
+                    movieDetailsSection.classList.remove('hidden');
+                    backButton.classList.remove('hidden'); // Show back button for details view
+                    break;
+                case 'player':
+                    videoPlayerSection.classList.remove('hidden');
+                    backButton.classList.remove('hidden'); // Show back button for player view
+                    break;
+            }
+        }
+
+        // --- API Fetch Functions ---
+
+        /**
+         * Generic function to fetch data from the API.
+         * @param {string} url - The API endpoint URL.
+         * @param {string} errorMessagePrefix - A prefix for error messages.
+         * @returns {Promise<Object|null>} - The JSON response data or null if an error occurs.
+         */
+        async function fetchData(url, errorMessagePrefix = 'Failed to fetch data') {
+            showLoading();
+            let response; // Declare response here to access it in catch block if needed for status
+            try {
+                response = await fetch(url); // Assign to outer scope variable
+                if (!response.ok) {
+                    // Attempt to parse JSON error response from the API
+                    const errorData = await response.json().catch(() => {
+                        // If parsing JSON fails, use the status text or a generic message
+                        return { message: `API returned status ${response.status}: ${response.statusText || 'No additional error message provided.'}` };
+                    });
+                    // Construct a more informative error message
+                    throw new Error(`${errorMessagePrefix}: ${errorData.message || `HTTP error ${response.status}`}`);
+                }
+                return await response.json();
+            } catch (error) {
+                // Enhanced console logging, especially for "Failed to fetch" TypeErrors
+                if (error instanceof TypeError && error.message === 'Failed to fetch') {
+                    console.error(`[${errorMessagePrefix}] Network Error: "${error.message}". This usually indicates a problem reaching the API server. Potential causes:`);
+                    console.error(`  1. Internet connectivity issue.`);
+                    console.error(`  2. DNS resolution failure for the API domain (${API_BASE_URL}).`);
+                    console.error(`  3. The API server (${API_BASE_URL}) might be down or unresponsive.`);
+                    console.error(`  4. CORS policy on the server might be blocking the request. If running this page from a local file (file://), try using a local web server.`);
+                    console.error(`  Check the browser's Network tab for more details on the failed request (e.g., status, headers).`);
+                } else {
+                    // Standard logging for other types of errors (e.g., API returned 4xx or 5xx)
+                    console.error(`[${errorMessagePrefix}] Full error object:`, error); // Log the full error object
+                    console.error(`[${errorMessagePrefix}] Error name: ${error.name}, Message: ${error.message}`);
+                }
+
+                if (response) { // If response exists (i.e., fetch initiated but server returned an error status like 404, 500)
+                    console.error(`[${errorMessagePrefix}] HTTP Status from server: ${response.status} ${response.statusText}`);
+                }
+
+                // Determine the message to show to the user
+                let displayMessage = `${errorMessagePrefix}. Please check your internet connection or try again later. More details in console.`;
+                if (error.message) { // Check if error.message exists
+                    const prefixPattern = `${errorMessagePrefix}: `;
+                    // Extract the part of the message that came from the API or the fetch operation itself
+                    let apiSpecificMessage = error.message.startsWith(prefixPattern) ? error.message.substring(prefixPattern.length) : error.message;
+
+                    if (apiSpecificMessage === "Failed to fetch") { // Specifically for TypeError: Failed to fetch
+                         displayMessage = `${errorMessagePrefix}: Network error or API unreachable. Please check your internet connection and try again. If the issue persists, the API service may be temporarily down or there might be a CORS issue (see browser console for details).`;
+                    } else if (apiSpecificMessage === "{}") { // Handle cases where API might return an empty object string as error
+                         displayMessage = `${errorMessagePrefix}: The API returned an unclear error. Please check the browser console for more technical details.`;
+                    } else {
+                        // For other errors (e.g., API returned a specific error message like "Movie not found")
+                        displayMessage = error.message.startsWith(prefixPattern) ? error.message : `${errorMessagePrefix}: ${apiSpecificMessage}`;
+                    }
+                }
+                
+                showMessage(displayMessage);
+                return null;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // --- Rendering Functions ---
+
+        /**
+         * Creates an HTML movie card element.
+         * @param {Object} movie - The movie data object.
+         * @returns {HTMLElement} - The created movie card element.
+         */
+        function createMovieCard(movie) {
+            const card = document.createElement('div');
+            card.className = 'movie-card rounded-lg shadow-md cursor-pointer flex flex-col';
+            // Use a placeholder image if the movie image is not available or fails to load
+            const placeholderImage = `https://placehold.co/400x600/${PLACEHOLDER_BG_COLOR}/${PLACEHOLDER_TEXT_COLOR}?text=No+Image`;
+            const errorImage = `https://placehold.co/400x600/${PLACEHOLDER_BG_COLOR}/${PLACEHOLDER_TEXT_COLOR}?text=Error`;
+
+            card.innerHTML = `
+                <img src="${movie.image || placeholderImage}" alt="${movie.title}" class="w-full h-auto rounded-t-lg" onerror="this.onerror=null;this.src='${errorImage}';">
+                <div class="p-3 flex flex-col flex-grow">
+                    <h3 class="text-md font-semibold movie-card-title text-ellipsis overflow-hidden">${movie.title}</h3>
+                    <p class="text-xs text-text-muted-color mt-auto">${movie.type || ''} ${movie.year ? `(${movie.year})` : ''}</p>
+                </div>
+            `;
+            card.addEventListener('click', () => fetchAndShowMovieDetails(movie.id));
+            return card;
+        }
+
+        /**
+         * Displays a list of movies in the specified container.
+         * @param {Array<Object>} movies - An array of movie objects.
+         * @param {HTMLElement} containerElement - The HTML element to append movie cards to.
+         * @param {boolean} isSearch - True if the movies are from a search result.
+         */
+        function displayMovies(movies, containerElement, isSearch = false) {
+            containerElement.innerHTML = ''; // Clear previous results
+            if (!movies || movies.length === 0) {
+                containerElement.innerHTML = `<p class="col-span-full text-center text-text-muted-color p-8">${isSearch ? 'No results found.' : 'No trending content available at the moment.'}</p>`;
+                return;
+            }
+            movies.forEach(movie => containerElement.appendChild(createMovieCard(movie)));
+        }
+
+        // --- Main Logic Functions ---
+
+        /**
+         * Fetches and displays trending movies/shows.
+         */
+        async function showTrendingView() {
+            const data = await fetchData(`${API_BASE_URL}/movies/${FLIXHQ_PROVIDER}/trending`, 'Failed to load trending content');
+            if (data && data.results) {
+                displayMovies(data.results, trendingMoviesGrid);
+            }
+            updateView('trending');
+        }
+
+        /**
+         * Performs a search for movies/shows based on user input.
+         */
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            if (!query) {
+                showMessage('Please enter a search term.');
+                return;
+            }
+            searchResultsTitle.textContent = `Search Results for "${query}"`;
+            const data = await fetchData(`${API_BASE_URL}/movies/${FLIXHQ_PROVIDER}/${encodeURIComponent(query)}`, 'Search failed');
+            if (data && data.results) {
+                displayMovies(data.results, searchResultsGrid, true);
+            } else {
+                 // Ensure a message is shown even if data or data.results is null/undefined after a failed fetch
+                 searchResultsGrid.innerHTML = `<p class="col-span-full text-center text-text-muted-color p-8">No results found for "${query}".</p>`;
+            }
+            updateView('search');
+            // searchInput.value = ''; // Optionally clear search input after search
+        }
+
+        /**
+         * Fetches and displays detailed information for a selected movie/show.
+         * @param {string} mediaId - The ID of the movie/show.
+         */
+        async function fetchAndShowMovieDetails(mediaId) {
+            currentMediaId = mediaId;
+            const data = await fetchData(`${API_BASE_URL}/movies/${FLIXHQ_PROVIDER}/info?id=${mediaId}`, 'Failed to load movie details');
+            if (!data) { // If fetchData returned null due to an error
+                updateView(previousView || 'trending'); // Go back to the previous view or trending
+                return;
+            }
+            currentMovieInfo = data; // Store movie info for later use
+
+            // Populate movie details content
+            const placeholderDetailImage = `https://placehold.co/400x600/${PLACEHOLDER_BG_COLOR}/${PLACEHOLDER_TEXT_COLOR}?text=No+Image`;
+            const errorDetailImage = `https://placehold.co/400x600/${PLACEHOLDER_BG_COLOR}/${PLACEHOLDER_TEXT_COLOR}?text=Error`;
+            movieDetailsContent.innerHTML = `
+                <img src="${data.image || placeholderDetailImage}" alt="${data.title}" class="w-full md:w-1/3 h-auto object-cover rounded-lg shadow-md self-start" onerror="this.onerror=null;this.src='${errorDetailImage}';">
+                <div class="flex-grow">
+                    <h2 class="text-3xl font-bold text-primary-color mb-2">${data.title}</h2>
+                    <p class="text-sm text-text-muted-color mb-1">${data.year || 'N/A'} | ${data.duration || 'N/A'} | ${data.type || 'N/A'}</p>
+                    ${data.rating ? `<p class="text-sm text-text-muted-color mb-3">Rating: ${data.rating}/10</p>` : ''}
+                    <p class="mb-4 text-sm leading-relaxed">${data.description || 'No description available.'}</p>
+                    ${data.genres && data.genres.length > 0 ? `<p class="text-sm mb-2"><strong>Genres:</strong> ${data.genres.join(', ')}</p>` : ''}
+                    ${data.casts && data.casts.length > 0 ? `<p class="text-sm mb-2"><strong>Casts:</strong> ${data.casts.join(', ')}</p>` : ''}
+                    ${data.tags && data.tags.length > 0 ? `<p class="text-sm"><strong>Tags:</strong> ${data.tags.join(', ')}</p>` : ''}
+                </div>
+            `;
+
+            episodesAndServersSection.innerHTML = ''; // Clear previous episodes/servers content
+
+            // Handle TV Series episodes or Movie play options
+            if (data.type === 'TV Series' && data.episodes && data.episodes.length > 0) {
+                const episodeOptions = data.episodes.map(ep => `<option value="${ep.id}">Ep ${ep.number}: ${ep.title || `Episode ${ep.number}`}</option>`).join('');
+                episodesAndServersSection.innerHTML = `
+                    <h3 class="text-xl font-semibold mb-3">Episodes</h3>
+                    <select id="episodeSelect" class="oxy-select w-full p-2 rounded-md mb-4">
+                        <option value="">Select an Episode</option>
+                        ${episodeOptions}
+                    </select>
+                    <div id="serversContainer" class="hidden"> <h3 class="text-xl font-semibold mb-3">Available Servers</h3>
+                        <select id="serverSelect" class="oxy-select w-full p-2 rounded-md mb-2"></select>
+                        <button id="playFromServerButton" class="oxy-btn text-white py-2 px-4 rounded-md w-full">Play from Selected Server</button>
+                    </div>
+                `;
+                document.getElementById('episodeSelect').addEventListener('change', handleEpisodeSelection);
+            } else if (data.type === 'Movie') {
+                currentEpisodeId = data.id; // For movies, the episodeId is usually the movie's own ID
+                episodesAndServersSection.innerHTML = `
+                    <div id="serversContainer"> <h3 class="text-xl font-semibold mb-3">Available Servers</h3>
+                        <select id="serverSelect" class="oxy-select w-full p-2 rounded-md mb-2"></select>
+                        <button id="playFromServerButton" class="oxy-btn text-white py-2 px-4 rounded-md w-full">Play Movie</button>
+                    </div>
+                `;
+                fetchAvailableServers(currentMediaId, currentEpisodeId); // Auto-fetch servers for the movie
+            } else {
+                episodesAndServersSection.innerHTML = '<p class="text-text-muted-color">No playable content found for this title.</p>';
+            }
+            updateView('details');
+        }
+
+        /**
+         * Handles the selection of an episode from the dropdown.
+         * @param {Event} event - The change event from the episode select dropdown.
+         */
+        function handleEpisodeSelection(event) {
+            currentEpisodeId = event.target.value;
+            const serversContainer = document.getElementById('serversContainer');
+            if (currentEpisodeId) {
+                serversContainer.classList.remove('hidden');
+                fetchAvailableServers(currentMediaId, currentEpisodeId);
+            } else {
+                serversContainer.classList.add('hidden'); // Hide if "Select an Episode" is chosen
+            }
+        }
+
+        /**
+         * Fetches and displays available streaming servers for a given media and episode.
+         * @param {string} mediaId - The ID of the movie/show.
+         * @param {string} episodeId - The ID of the episode (or movie ID for movies).
+         */
+        async function fetchAvailableServers(mediaId, episodeId) {
+            const serverSelect = document.getElementById('serverSelect');
+            const playButton = document.getElementById('playFromServerButton');
+
+            // Ensure elements exist before proceeding
+            if (!serverSelect || !playButton) {
+                 console.warn("Server select or play button DOM element not found. Cannot fetch servers.");
+                 // Show error only if it's not a movie (movies auto-load servers, so this might be an intermediate state)
+                 if(currentMovieInfo && currentMovieInfo.type !== 'Movie') {
+                    showMessage("Could not initialize server selection interface.");
+                 }
+                 return;
+            }
+
+            serverSelect.innerHTML = '<option value="">Loading servers...</option>'; // Placeholder while loading
+            playButton.disabled = true; // Disable button until servers are loaded
+
+            const data = await fetchData(`${API_BASE_URL}/movies/${FLIXHQ_PROVIDER}/servers?episodeId=${episodeId}&mediaId=${mediaId}`, 'Failed to load servers');
+
+            if (data && data.length > 0) {
+                serverSelect.innerHTML = data.map(server => `<option value="${server.name}">${server.name.toUpperCase()}</option>`).join('');
+                playButton.disabled = false;
+                // Ensure the click listener is correctly (re)assigned
+                playButton.onclick = () => {
+                    const selectedServer = serverSelect.value;
+                    if (selectedServer) {
+                        fetchStreamingLinks(currentMediaId, currentEpisodeId, selectedServer);
+                    } else {
+                        showMessage("Please select a server.");
+                    }
+                };
+            } else {
+                serverSelect.innerHTML = '<option value="">No servers available</option>';
+                if (data) { // If data is an empty array, it means no servers were found
+                    showMessage('No servers found for this selection.', 'error');
+                } // If data is null, fetchData already showed an error
+            }
+        }
+
+        /**
+         * Fetches streaming links and starts video playback.
+         * @param {string} mediaId - The ID of the movie/show.
+         * @param {string} episodeId - The ID of the episode.
+         * @param {string} server - The name of the selected server.
+         */
+        async function fetchStreamingLinks(mediaId, episodeId, server) {
+            const data = await fetchData(`${API_BASE_URL}/movies/${FLIXHQ_PROVIDER}/watch?episodeId=${episodeId}&mediaId=${mediaId}&server=${server}`, 'Failed to load streaming links');
+
+            // Clean up any existing HLS instance and video source
+            if (hlsInstance) {
+                hlsInstance.destroy();
+                hlsInstance = null;
+            }
+            videoPlayer.src = ''; // Clear previous video source
+
+            if (data && data.sources && data.sources.length > 0) {
+                // Prioritize HLS "auto" quality, then any HLS, then "auto"/"default" MP4, then first available
+                let sourceToPlay = data.sources.find(s => s.quality === 'auto' && s.url && s.url.includes('.m3u8'));
+                if (!sourceToPlay) sourceToPlay = data.sources.find(s => s.url && s.url.includes('.m3u8'));
+                if (!sourceToPlay) sourceToPlay = data.sources.find(s => s.url && (s.quality === 'auto' || s.quality === 'default' || s.quality === 'backup'));
+                if (!sourceToPlay) sourceToPlay = data.sources[0];
+
+                if (sourceToPlay && sourceToPlay.url) {
+                    videoPlayerTitle.textContent = `Now Playing: ${currentMovieInfo ? currentMovieInfo.title : 'Selected Content'}`;
+                    currentSourceInfo.textContent = `Server: ${server.toUpperCase()} | Quality: ${sourceToPlay.quality || 'Unknown'}${sourceToPlay.isM3U8 || sourceToPlay.url.includes('.m3u8') ? ' (HLS)' : ''}`;
+
+                    if (sourceToPlay.isM3U8 || sourceToPlay.url.includes('.m3u8')) {
+                        if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+                            hlsInstance = new Hls();
+                            hlsInstance.loadSource(sourceToPlay.url);
+                            hlsInstance.attachMedia(videoPlayer);
+                            hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => videoPlayer.play().catch(e => console.warn("Autoplay prevented:", e)));
+                            hlsInstance.on(Hls.Events.ERROR, (event, hlsErrorData) => {
+                                console.error('HLS Error:', hlsErrorData);
+                                if (hlsErrorData.fatal) {
+                                    showMessage(`Video playback error (HLS): ${hlsErrorData.details}. Try another server.`, 'error');
+                                    hlsInstance.destroy(); // Clean up on fatal error
+                                }
+                            });
+                        } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) { // Native HLS support (e.g., Safari)
+                            videoPlayer.src = sourceToPlay.url;
+                            videoPlayer.play().catch(e => console.warn("Autoplay prevented:", e));
+                        } else {
+                            showMessage('HLS playback is not supported by your browser. Try a different server or browser.', 'error');
+                        }
+                    } else { // Direct MP4 or other link
+                        videoPlayer.src = sourceToPlay.url;
+                        videoPlayer.play().catch(e => console.warn("Autoplay prevented:", e));
+                    }
+                    updateView('player');
+                } else {
+                    showMessage('No playable video source found. Try a different server.', 'error');
+                }
+            } else {
+                 // If data is null, fetchData already showed an error. If sources are empty:
+                if (data) showMessage('No streaming sources found for this selection. Try a different server.', 'error');
+            }
+        }
+
+        /**
+         * Handles the click of the back button, navigating to the appropriate previous view.
+         */
+        function handleBack() {
+            // Stop video and clean up HLS if active
+            if (hlsInstance) {
+                hlsInstance.destroy();
+                hlsInstance = null;
+            }
+            videoPlayer.pause();
+            videoPlayer.src = '';
+            currentSourceInfo.textContent = '';
+
+            if (currentView === 'player') {
+                updateView('details'); // Always go back to details from player
+            } else if (currentView === 'details') {
+                // Go back to search results if that was the previous view, otherwise to trending
+                updateView(previousView === 'search' && searchResultsGrid.children.length > 0 ? 'search' : 'trending');
+            } else {
+                showTrendingView(); // Fallback to trending view
+            }
+        }
+
+        // --- Event Listeners ---
+        searchButton.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            showTrendingView(); // Load trending content when the page is ready
+        });
+
+        // Cleanup HLS instance on page unload/close to prevent memory leaks
+        window.addEventListener('beforeunload', () => {
+            if (hlsInstance) {
+                hlsInstance.destroy();
+            }
+        });
+
+    </script>
+</body>
+</html>
