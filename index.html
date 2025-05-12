@@ -60,6 +60,7 @@
             font-size: 0.9rem;
             cursor: pointer;
             transition: color 0.2s, transform 0.2s;
+            z-index: 5; /* Ensure it's above image */
         }
         .card .favorite-icon:hover { transform: scale(1.1); }
         .card .favorite-icon.is-favorite { color: #e50914; }
@@ -78,7 +79,7 @@
             position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             overflow-y: auto; padding: 15px; 
-            -webkit-overflow-scrolling: touch; /* For smoother scrolling on iOS inside modal */
+            -webkit-overflow-scrolling: touch; 
         }
         .close-button { 
             color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1;
@@ -122,10 +123,8 @@
         .btn-action:hover, .btn-next-episode:hover { background-color: #f40612; }
         .btn-action:disabled, .btn-next-episode:disabled { background-color: #555; cursor: not-allowed; }
         
-        #searchResultsGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
-        #searchResultsGrid .card { width: 100%; }
-        #favoritesGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
-        #favoritesGrid .card { width: 100%; }
+        #searchResultsGrid, #favoritesGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+        #searchResultsGrid .card, #favoritesGrid .card { width: 100%; }
 
 
         .filter-btn {
@@ -166,6 +165,7 @@
             #modalTvControls label, #infoModalTvControls label { font-size: 0.8rem; }
             .modal-content > p.text-xs { font-size: 0.7rem; margin-top: 8px; }
             .btn-action { padding: 0.5rem 1rem; font-size: 0.9rem; }
+            #supportSection > div { flex-direction: column; align-items: center; } /* Stack Fundly widgets on mobile */
         }
     </style>
 </head>
@@ -317,7 +317,25 @@
         </div>
     </div>
 
-    <footer class="text-center p-6 mt-12 border-t border-gray-700">
+    <section id="supportSection" class="container mx-auto p-4 sm:p-6 lg:p-8 mt-8">
+        <h2 class="text-2xl font-bold mb-6 text-center netflix-red-text">Support SkyeMovie</h2>
+        <div class="flex flex-col md:flex-row justify-center items-start gap-8">
+            <div class='fundly-widget' style='width:277px;border:1px solid #D4D4D4;border-radius:3px;background:#fcfcfc;'>
+                <iframe src='https://d2wwhrh9otv6z9.cloudfront.net/campaign_card.html?activity=keep-skyemovie-free-for-everyone&hb=t' style='border:none;width:275px;height:510px'></iframe>
+                <p style='text-align:right;margin:-6px 0 0 0;padding:5px 10px;border-top:1px solid #eee;font:10px/16px helvetica !important;'>
+                    <a href='https://fundly.com/keep-skyemovie-free-for-everyone?ft_src=widget_campaign_card' style='color:#888;margin:0;text-decoration:none;float:left'>See Skye's Campaign</a>
+                    <a href='https://fundly.com?ft_src=widget_campaign_card' style='color:#888;margin:0;text-decoration:none;' target='_blank'>Powered by Fundly</a>
+                </p>
+            </div>
+            <div class="mt-8 md:mt-0">
+                <script type='text/javascript' src='https://fundly.com/assets/widget.loader.js?wid=keep-skyemovie-free-for-everyone'></script>
+                <div id='fundly-link' style='font-family:Helvetica,Verdana;font-size:12px;color:#ccc; text-align:center;'> <br/><br/>Powered by <a href='https://fundly.com' style="color: #e50914;">Fundly</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="text-center p-6 mt-4 border-t border-gray-700">
         <p class="text-sm text-gray-400">SkyeMovie is in development. For the latest updates and community chat, join us on Telegram:</p>
         <a href="https://t.me/skyemovieupdates" target="_blank" rel="noopener noreferrer" class="text-lg netflix-red-text hover:underline font-semibold">
             <i class="fab fa-telegram-plane mr-1"></i> SkyeMovie Updates
@@ -472,6 +490,7 @@
             resultsToDisplay.forEach(item => {
                  searchResultsGrid.appendChild(createContentCard(item, item.media_type));
             });
+            updateAllFavoriteIcons();
         }
 
         function displaySearchResultsUI(results, query) {
@@ -534,6 +553,10 @@
             searchResultsGridContainer.classList.add('hidden');
             favoritesGridContainer.classList.add('hidden');
             searchResultsGrid.innerHTML = '';
+            document.querySelectorAll('.nav-link.active').forEach(l => l.classList.remove('active'));
+            navDiscoverDesktop.classList.add('active');
+            navDiscoverMobile.classList.add('active');
+
 
             if (!moviesScrollWrapper || !tvScrollWrapper) {
                 reinitializeScrollableContent(); 
@@ -569,6 +592,7 @@
                     tvScrollWrapper.innerHTML = `<p class="p-4 text-red-400">Error loading TV shows.</p>`;
                  }
             }
+            updateAllFavoriteIcons();
         }
 
         function createContentCard(item, type) {
@@ -598,7 +622,7 @@
                     title: favIcon.dataset.title, 
                     poster_path: favIcon.dataset.poster
                 };
-                toggleFavorite(favData, favIcon.querySelector('i'));
+                toggleFavorite(favData, favIcon); // Pass the div, not just the i
             });
             return card;
         }
@@ -608,7 +632,7 @@
             try {
                 const details = await fetchFromTMDB(`${type}/${id}`);
                 showStatus("");
-                currentInfoModalData = { ...details, type: type, id: id }; // Ensure id is part of this object
+                currentInfoModalData = { ...details, type: type, id: id }; 
 
                 infoModalTitle.textContent = details.title || details.name || "Details";
                 infoModalPoster.src = details.poster_path ? `${TMDB_IMG_BASE_URL}${details.poster_path}` : 'https://placehold.co/150x225/1f1f1f/e50914?text=No+Poster';
@@ -926,7 +950,8 @@
         function addToFavorites(item) {
             const favorites = getFavorites();
             if (!isFavorite(item.id, item.type)) {
-                favorites.push({id: parseInt(item.id), type: item.type, title: (item.title || item.name || "Untitled"), poster_path: item.poster_path });
+                 const titleToStore = item.title || item.name || "Untitled";
+                favorites.push({id: parseInt(item.id), type: item.type, title: titleToStore, poster_path: item.poster_path });
                 saveFavorites(favorites);
             }
         }
@@ -935,7 +960,7 @@
             favorites = favorites.filter(fav => !(fav.id === parseInt(id) && fav.type === type));
             saveFavorites(favorites);
         }
-        function toggleFavorite(itemData, iconElement) { 
+        function toggleFavorite(itemData, iconContainerElement) { 
             const titleToStore = itemData.title || itemData.name || "Untitled";
             const favObject = {
                 id: parseInt(itemData.id),
@@ -944,21 +969,25 @@
                 poster_path: itemData.poster_path
             };
 
+            const iconElement = iconContainerElement ? iconContainerElement.querySelector('i') : null;
+
             if (isFavorite(favObject.id, favObject.type)) {
                 removeFromFavorites(favObject.id, favObject.type);
                 if(iconElement) {
-                    iconElement.classList.remove('fas'); // Removed 'is-favorite' from here, handled by updateAllFavoriteIcons
+                    iconElement.classList.remove('fas'); 
                     iconElement.classList.add('far');
                 }
+                if(iconContainerElement) iconContainerElement.classList.remove('is-favorite');
+
             } else {
                 addToFavorites(favObject);
                 if(iconElement) {
                     iconElement.classList.remove('far');
                     iconElement.classList.add('fas');
                 }
+                 if(iconContainerElement) iconContainerElement.classList.add('is-favorite');
             }
             updateInfoModalFavoriteButton(favObject.id, favObject.type); 
-            // If on favorites page, refresh it
             if (!favoritesGridContainer.classList.contains('hidden')) {
                 loadFavorites();
             }
@@ -989,18 +1018,18 @@
         }
         
         function updateAllFavoriteIcons() {
-            document.querySelectorAll('.favorite-icon').forEach(iconEl => {
-                const id = parseInt(iconEl.dataset.id);
-                const type = iconEl.dataset.type;
-                const icon = iconEl.querySelector('i');
+            document.querySelectorAll('.favorite-icon').forEach(iconContainerEl => {
+                const id = parseInt(iconContainerEl.dataset.id);
+                const type = iconContainerEl.dataset.type;
+                const icon = iconContainerEl.querySelector('i');
                 if (isFavorite(id, type)) {
                     icon.classList.remove('far');
                     icon.classList.add('fas');
-                    iconEl.classList.add('is-favorite');
+                    iconContainerEl.classList.add('is-favorite');
                 } else {
                     icon.classList.remove('fas');
                     icon.classList.add('far');
-                    iconEl.classList.remove('is-favorite');
+                    iconContainerEl.classList.remove('is-favorite');
                 }
             });
         }
@@ -1013,7 +1042,7 @@
             searchResultsGridContainer.classList.add('hidden');
             favoritesGridContainer.classList.remove('hidden');
             favoritesGrid.innerHTML = '';
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.nav-link.active').forEach(l => l.classList.remove('active'));
             navFavoritesDesktop.classList.add('active');
             navFavoritesMobile.classList.add('active');
 
@@ -1026,6 +1055,7 @@
             favorites.forEach(fav => {
                 favoritesGrid.appendChild(createContentCard(fav, fav.type));
             });
+            updateAllFavoriteIcons(); // Ensure icons are correct on favorites page load
         }
 
 
