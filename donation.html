@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,39 +10,142 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #141414;
+            background-color: #141414; /* Main dark background */
             color: #e5e5e5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background-color: rgba(0, 0, 0, 0.9); /* Slightly more opaque header */
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
         .netflix-red-text { color: #e50914; }
-        .content-wrapper {
-            max-width: 900px; /* Max width for content */
+        
+        main.content-wrapper {
+            flex-grow: 1; /* Ensure main content takes available space */
+            max-width: 1200px; 
+            width: 90%; /* Responsive width */
             margin: 2rem auto;
-            padding: 1rem;
+            padding: 2rem 1rem;
+            background-color: #181818; /* Slightly lighter background for content area */
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
         }
+        .page-title {
+            font-size: 2.5rem; /* Larger title */
+            font-weight: 900; /* Bolder */
+            text-align: center;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+        .page-subtitle {
+            font-size: 1.125rem; /* Slightly larger subtitle */
+            text-align: center;
+            color: #b3b3b3; /* Lighter gray for subtitle */
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
         .fundly-container {
             display: flex;
-            flex-direction: column; /* Stack on mobile by default */
-            align-items: center; /* Center items when stacked */
-            gap: 2rem; /* Space between widgets */
-        }
-        @media (min-width: 768px) { /* md breakpoint */
-            .fundly-container {
-                flex-direction: row; /* Side-by-side on larger screens */
-                align-items: flex-start; /* Align to top when side-by-side */
-                justify-content: center;
-            }
+            flex-direction: column; 
+            align-items: center; 
+            gap: 2.5rem; /* Increased gap */
         }
         .fundly-widget-wrapper {
-            background-color: #1f1f1f; /* Darker background for widget area */
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            background-color: #222; /* Darker, distinct background for widgets */
+            padding: 2rem; /* More padding */
+            border-radius: 0.75rem; /* More rounded corners */
+            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+            width: 100%; 
+            max-width: 480px; 
+            border: 1px solid #333; /* Subtle border */
+        }
+
+        .fundly-campaign-card-wrapper .fundly-widget {
+            width: 100% !important; 
+            max-width: 300px; 
+            margin: 0 auto; 
+            background: #fcfcfc !important; /* Ensure Fundly's background is applied if it overrides */
+            border-radius: 3px !important; /* Match Fundly's border-radius */
+            border: 1px solid #D4D4D4 !important; /* Match Fundly's border */
+        }
+        .fundly-campaign-card-wrapper iframe {
+            width: 100% !important; 
+            max-width: 275px; 
+            height: 510px; 
+            display: block;
+            margin: 0 auto;
+            border: none !important;
+        }
+         .fundly-campaign-card-wrapper p { 
+            max-width: 275px;
+            margin: -6px auto 0 auto !important;
+            padding: 8px 10px !important; /* Slightly more padding */
+            font: 10px/16px 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+            border-top: 1px solid #ddd !important; /* Lighter border top */
+         }
+         .fundly-campaign-card-wrapper p a {
+             color: #777 !important; /* Slightly darker grey for Fundly links for contrast on light bg */
+         }
+
+
+        .fundly-donation-form-wrapper {
+             width: 100%;
+             max-width: 520px; 
+        }
+        #fundly_iframe_keep-skyemovie-free-for-everyone { 
+            width: 100% !important; 
+            min-height: 620px; /* Increased min-height */
+            border-radius: 3px; /* Match other widget style */
+            overflow: hidden; /* Hide scrollbars if Fundly adds them unnecessarily */
+        }
+
+        #fundly-link {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+            font-size: 12px !important;
+            color: #a0a0a0 !important; /* Lighter grey for dark theme */
+            text-align: center;
+            margin-top: 1rem; /* Add some space above "Powered by" */
         }
         #fundly-link a {
-            color: #e50914 !important; /* Override Fundly's default link color */
+            color: #e50914 !important; 
+            text-decoration: none;
         }
-        #fundly-link {
-            color: #ccc !important; /* Adjust text color for dark theme */
+        #fundly-link a:hover {
+            text-decoration: underline;
+        }
+        
+        footer {
+            border-top: 1px solid #2a2a2a; /* Darker border */
+            margin-top: auto; /* Push footer to bottom */
+        }
+
+
+        @media (min-width: 992px) { /* lg breakpoint for side-by-side layout */
+            .fundly-container {
+                flex-direction: row; 
+                align-items: flex-start; 
+                justify-content: center;
+                gap: 3rem; 
+            }
+            .fundly-widget-wrapper {
+                width: auto; 
+            }
+            .fundly-campaign-card-wrapper {
+                flex-basis: 320px; /* Slightly increased base width */
+                flex-shrink: 0;
+            }
+            .fundly-donation-form-wrapper {
+                flex-basis: 520px; 
+                flex-grow: 1; 
+            }
         }
     </style>
 </head>
@@ -66,32 +168,32 @@
     </header>
 
     <main class="content-wrapper">
-        <h1 class="text-4xl font-bold text-center mb-8 netflix-red-text">Support SkyeMovie</h1>
-        <p class="text-lg text-center text-gray-300 mb-10">
+        <h1 class="page-title netflix-red-text">Support SkyeMovie</h1>
+        <p class="page-subtitle">
             Your generous donations help us keep SkyeMovie running smoothly, ad-minimal, and free for everyone.
             Every contribution, big or small, makes a huge difference. Thank you for your support!
         </p>
 
         <div class="fundly-container">
-            <div class="fundly-widget-wrapper">
-                <div class='fundly-widget' style='width:277px;border:1px solid #D4D4D4;border-radius:3px;background:#fcfcfc;'>
-                    <iframe src='https://d2wwhrh9otv6z9.cloudfront.net/campaign_card.html?activity=keep-skyemovie-free-for-everyone&hb=t' style='border:none;width:275px;height:510px'></iframe>
-                    <p style='text-align:right;margin:-6px 0 0 0;padding:5px 10px;border-top:1px solid #eee;font:10px/16px helvetica !important;'>
-                        <a href='https://fundly.com/keep-skyemovie-free-for-everyone?ft_src=widget_campaign_card' style='color:#888;margin:0;text-decoration:none;float:left'>See Skye's Campaign</a>
-                        <a href='https://fundly.com?ft_src=widget_campaign_card' style='color:#888;margin:0;text-decoration:none;' target='_blank'>Powered by Fundly</a>
+            <div class="fundly-widget-wrapper fundly-campaign-card-wrapper">
+                <div class='fundly-widget'>
+                    <iframe src='https://d2wwhrh9otv6z9.cloudfront.net/campaign_card.html?activity=keep-skyemovie-free-for-everyone&hb=t'></iframe>
+                    <p>
+                        <a href='https://fundly.com/keep-skyemovie-free-for-everyone?ft_src=widget_campaign_card'>See Skye's Campaign</a>
+                        <a href='https://fundly.com?ft_src=widget_campaign_card' target='_blank'>Powered by Fundly</a>
                     </p>
                 </div>
             </div>
-            <div class="fundly-widget-wrapper mt-8 md:mt-0">
+            <div class="fundly-widget-wrapper fundly-donation-form-wrapper">
                 <script type='text/javascript' src='https://fundly.com/assets/widget.loader.js?wid=keep-skyemovie-free-for-everyone'></script>
-                <div id='fundly-link' style='font-family:Helvetica,Verdana;font-size:12px;color:#ccc; text-align:center;'>
-                    <br/><br/>Powered by <a href='https://fundly.com' style="color: #e50914;">Fundly</a>
+                <div id='fundly-link'>
+                    Powered by <a href='https://fundly.com'>Fundly</a>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer class="text-center p-6 mt-12 border-t border-gray-700">
+    <footer class="text-center p-6 mt-12">
         <p class="text-sm text-gray-400">SkyeMovie is in development. For the latest updates and community chat, join us on Telegram:</p>
         <a href="https://t.me/skyemovieupdates" target="_blank" rel="noopener noreferrer" class="text-lg netflix-red-text hover:underline font-semibold">
             <i class="fab fa-telegram-plane mr-1"></i> SkyeMovie Updates
