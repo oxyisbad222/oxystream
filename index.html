@@ -5,519 +5,665 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SkyeMovie</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #141414; /* Netflix dark background */
+            background-color: #141414;
+            color: #e5e5e5;
         }
-        /* Custom scrollbar for modal content (WebKit browsers) */
-        #detail-modal-content::-webkit-scrollbar {
-            width: 8px;
-        }
-        #detail-modal-content::-webkit-scrollbar-track {
-            background: #2d2d2d;
-            border-radius: 10px;
-        }
-        #detail-modal-content::-webkit-scrollbar-thumb {
-            background: #555;
-            border-radius: 10px;
-        }
-        #detail-modal-content::-webkit-scrollbar-thumb:hover {
-            background: #E50914; /* Netflix Red */
-        }
-        /* For Firefox */
-        #detail-modal-content {
-            scrollbar-width: thin;
-            scrollbar-color: #555 #2d2d2d;
-        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #232323; }
+        ::-webkit-scrollbar-thumb { background: #e50914; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #f40612; }
 
-        .nav-link.active {
-            color: #E50914; /* Netflix Red */
-            font-weight: 600;
+        .netflix-red-text { color: #e50914; }
+        .input-field, .select-field {
+            background-color: #333; border: 1px solid #555; color: #fff;
+            border-radius: 0.25rem; padding: 0.5rem 0.75rem;
+            transition: border-color 0.2s ease-in-out; width: 100%;
         }
-        .card-aspect {
-            aspect-ratio: 2 / 3;
+        .input-field:focus, .select-field:focus { outline: none; border-color: #e50914; }
+        
+        .card {
+            background-color: #1f1f1f; border-radius: 0.5rem;
+            overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            width: 180px; 
+            flex-shrink: 0; 
         }
-        .modal-iframe-aspect {
-            aspect-ratio: 16 / 9;
+        .card:hover { transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .card img { width: 100%; height: 270px; object-fit: cover; }
+        
+        .iframe-container { position: relative; overflow: hidden; width: 100%; padding-top: 56.25%; background-color: #000; }
+        .iframe-container iframe { position: absolute; top: 0; left: 0; bottom: 0; right: 0; width: 100%; height: 100%; border: none; }
+        
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.85); }
+        .modal-content { background-color: #181818; margin: 5% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 900px; }
+        .close-button { color: #aaa; float: right; font-size: 32px; font-weight: bold; cursor: pointer; line-height: 1; }
+        .close-button:hover, .close-button:focus { color: #e50914; text-decoration: none; }
+
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #e50914;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
         }
-        /* Basic styling for custom message box */
-        #message-box {
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .horizontal-scroll-container {
+            position: relative;
         }
-        .message-box-enter {
-            opacity: 0;
-            transform: translateY(-20px) translateX(-50%);
+        .scroll-wrapper {
+            display: flex;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding-bottom: 1rem; 
+            -ms-overflow-style: none;  
+            scrollbar-width: none;  
         }
-        .message-box-leave {
-            opacity: 0;
-            transform: translateY(-20px) translateX(-50%);
+        .scroll-wrapper::-webkit-scrollbar {
+            display: none; 
         }
-        .message-box-active {
-            opacity: 1;
-            transform: translateY(0) translateX(-50%);
+        .scroll-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            padding: 0.8rem 0.5rem; 
+            cursor: pointer;
+            z-index: 10;
+            border-radius: 0.25rem;
+            font-size: 1.5rem; 
+            line-height: 1;
+            opacity: 0.7;
+            transition: opacity 0.2s;
         }
+        .scroll-button:hover { opacity: 1; }
+        .scroll-button.prev { left: 5px; }
+        .scroll-button.next { right: 5px; }
+        .scroll-button:disabled { opacity:0.3; cursor: not-allowed;}
+
+        #modalTvControls {
+            background-color: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+        .btn-next-episode {
+            background-color: #e50914; color: white; font-weight: bold;
+            padding: 0.5rem 1rem; border-radius: 0.25rem;
+            transition: background-color 0.2s ease-in-out; cursor: pointer;
+            border: none;
+        }
+        .btn-next-episode:hover { background-color: #f40612; }
+        .btn-next-episode:disabled { background-color: #555; cursor: not-allowed; }
+
     </style>
 </head>
-<body class="text-white">
+<body class="text-gray-200">
 
-    <header class="bg-black bg-opacity-80 backdrop-blur-md p-4 fixed top-0 left-0 right-0 z-40 shadow-lg">
-        <div class="container mx-auto flex flex-wrap justify-between items-center">
-            <h1 id="logo" class="text-3xl font-black text-red-600 cursor-pointer order-1 sm:order-1">SkyeMovie</h1>
-            <nav class="space-x-2 sm:space-x-4 order-3 sm:order-2 w-full sm:w-auto mt-2 sm:mt-0 flex justify-center sm:justify-start">
-                <button data-page="movies" class="nav-link text-white hover:text-red-500 px-2 py-1 sm:px-3 sm:py-2 rounded-md text-sm font-medium">Movies</button>
-                <button data-page="tv" class="nav-link text-white hover:text-red-500 px-2 py-1 sm:px-3 sm:py-2 rounded-md text-sm font-medium">TV Shows</button>
-            </nav>
-            <div class="w-full sm:w-1/3 min-w-[180px] order-2 sm:order-3 mt-2 sm:mt-0">
-                <input type="search" id="search-input" placeholder="Search titles (min 3 chars)..." class="bg-neutral-700 text-white placeholder-gray-400 w-full px-4 py-2 rounded-full focus:ring-2 focus:ring-red-500 focus:outline-none text-sm">
+    <header class="bg-black bg-opacity-90 shadow-lg sticky top-0 z-50 backdrop-blur-md">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="#" id="homeLink" class="text-3xl font-bold netflix-red-text">SkyeMovie</a>
+                <div class="flex-grow max-w-xl mx-4">
+                    <div class="relative">
+                        <input type="text" id="searchInput" class="input-field w-full pr-10" placeholder="Search movies or TV shows...">
+                        <button id="searchButton" class="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-e50914">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobileMenuButton" class="text-gray-300 hover:text-white focus:outline-none">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
             </div>
+        </div>
+        <div id="mobileMenu" class="md:hidden hidden bg-black bg-opacity-90">
+            <a href="#" id="navDiscoverMobile" class="block text-center py-3 border-b border-gray-700 hover:bg-gray-700">Discover</a>
         </div>
     </header>
-
-    <main id="app-content" class="pt-36 sm:pt-28 p-4 md:p-8">
-        <div id="loading-spinner" class="text-center py-10 hidden">
-            <svg class="animate-spin h-12 w-12 text-red-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p class="text-white mt-3 text-lg">Loading...</p>
-        </div>
-
-        <section id="movies-discover-view" class="hidden">
-            <h2 class="text-2xl sm:text-3xl font-bold text-white mb-6">Discover Movies</h2>
-            <div id="movies-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+    
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8" id="mainContent">
+        <div id="statusMessage" class="text-center my-4 h-6"></div>
+        <section id="discoverSection">
+            <h2 class="text-3xl font-bold mb-6 border-l-4 border-red-600 pl-3">Most Popular</h2>
+            
+            <div id="discoverGridMovies" class="mb-10">
+                <h3 class="text-2xl font-semibold mb-4">Movies</h3>
+                <div class="horizontal-scroll-container">
+                    <button class="scroll-button prev" data-target="moviesScrollWrapper"><i class="fas fa-chevron-left"></i></button>
+                    <div id="moviesScrollWrapper" class="scroll-wrapper flex space-x-4">
+                    </div>
+                    <button class="scroll-button next" data-target="moviesScrollWrapper"><i class="fas fa-chevron-right"></i></button>
                 </div>
-            <div id="movies-pagination" class="mt-8 text-center space-x-2"></div>
-        </section>
-
-        <section id="tv-shows-discover-view" class="hidden">
-            <h2 class="text-2xl sm:text-3xl font-bold text-white mb-6">Discover TV Shows</h2>
-            <div id="tv-shows-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-                </div>
-            <div id="tv-shows-pagination" class="mt-8 text-center space-x-2"></div>
-        </section>
-
-        <section id="search-results-view" class="hidden">
-            <h2 class="text-2xl sm:text-3xl font-bold text-white mb-6">Search Results for "<span id="search-query-display" class="text-red-500"></span>"</h2>
-            <div>
-                <h3 class="text-xl sm:text-2xl font-semibold text-white my-4 border-b border-neutral-700 pb-2">Movies</h3>
-                <div id="search-movies-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6"></div>
-                <p id="search-movies-no-results" class="text-gray-400 hidden mt-4">No movies found matching your query.</p>
             </div>
-            <div class="mt-8">
-                <h3 class="text-xl sm:text-2xl font-semibold text-white my-4 border-b border-neutral-700 pb-2">TV Shows</h3>
-                <div id="search-tv-shows-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6"></div>
-                <p id="search-tv-shows-no-results" class="text-gray-400 hidden mt-4">No TV shows found matching your query.</p>
+
+            <div id="discoverGridTV">
+                <h3 class="text-2xl font-semibold mb-4">TV Shows</h3>
+                 <div class="horizontal-scroll-container">
+                    <button class="scroll-button prev" data-target="tvScrollWrapper"><i class="fas fa-chevron-left"></i></button>
+                    <div id="tvScrollWrapper" class="scroll-wrapper flex space-x-4">
+                    </div>
+                    <button class="scroll-button next" data-target="tvScrollWrapper"><i class="fas fa-chevron-right"></i></button>
+                </div>
             </div>
         </section>
     </main>
 
-    <div id="detail-modal" class="fixed inset-0 bg-black bg-opacity-90 hidden items-center justify-center z-50 p-4">
-        <div class="bg-neutral-800 rounded-lg shadow-xl w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl max-h-[95vh] flex flex-col">
-            <div class="flex justify-between items-center p-4 border-b border-neutral-700">
-                <h3 id="detail-modal-title" class="text-xl font-semibold text-white">Details</h3>
-                <button id="close-modal-button" class="text-gray-300 hover:text-red-500 text-3xl leading-none">&times;</button>
+    <div id="playerModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-2">
+                <h3 id="playerModalTitle" class="text-xl font-semibold">Now Playing</h3>
+                <span class="close-button" id="closeModalButton">&times;</span>
             </div>
-            <div id="detail-modal-content" class="p-2 sm:p-4 overflow-y-auto flex-grow">
+            <div id="playerContainer" class="iframe-container"></div>
+            
+            <div id="modalTvControls" class="hidden mt-4">
+                <h4 id="modalTvShowTitle" class="text-md font-semibold mb-2"></h4>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                    <div class="flex items-center gap-2">
+                        <label for="modalSeasonSelect" class="text-sm flex-shrink-0">Season:</label>
+                        <select id="modalSeasonSelect" class="select-field text-sm"></select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="modalEpisodeSelect" class="text-sm flex-shrink-0">Episode:</label>
+                        <select id="modalEpisodeSelect" class="select-field text-sm"></select>
+                    </div>
+                    <button id="nextEpisodeButton" class="btn-next-episode text-sm sm:col-start-3">Next Episode <i class="fas fa-step-forward ml-1"></i></button>
                 </div>
+            </div>
+            <p class="text-xs text-gray-400 mt-3">Using Server 4. If player doesn't load, ID might not be compatible or available.</p>
         </div>
     </div>
 
-    <div id="message-box" class="fixed top-24 left-1/2 bg-red-600 text-white p-3 px-5 rounded-md shadow-lg z-[100] message-box-enter">
-        <span id="message-box-text"></span>
-    </div>
-
+    <footer class="text-center p-6 mt-12 border-t border-gray-700">
+        <p class="text-sm text-gray-500">&copy; <span id="currentYear"></span> SkyeMovie. Uses TMDB API.</p>
+        <p class="text-xs text-gray-600 mt-1">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+    </footer>
 
     <script>
-        // API Configuration
-        const BASE_DISCOVER_API_URL = "https://moviesapi.to/api";
-        const BASE_CONTENT_URL = "https://moviesapi.club"; // Assuming HTTPS works, or change to HTTP if necessary
-        const RESULTS_PER_PAGE = 18; // Adjusted for better grid layout
+        const TMDB_IMG_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+        const ANYEMBED_BASE_URL = "https://player.autoembed.cc/embed";
+        const DEFAULT_SERVER = 4;
 
-        // DOM Elements
-        const logo = document.getElementById('logo');
-        const navLinks = document.querySelectorAll('.nav-link');
-        const searchInput = document.getElementById('search-input');
-        const appContent = document.getElementById('app-content');
-        const loadingSpinner = document.getElementById('loading-spinner');
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const statusMessage = document.getElementById('statusMessage');
         
-        const moviesDiscoverView = document.getElementById('movies-discover-view');
-        const moviesGrid = document.getElementById('movies-grid');
-        const moviesPaginationContainer = document.getElementById('movies-pagination');
+        const playerModal = document.getElementById('playerModal');
+        const playerContainer = document.getElementById('playerContainer');
+        const closeModalButton = document.getElementById('closeModalButton');
+        const playerModalTitle = document.getElementById('playerModalTitle');
 
-        const tvShowsDiscoverView = document.getElementById('tv-shows-discover-view');
-        const tvShowsGrid = document.getElementById('tv-shows-grid');
-        const tvShowsPaginationContainer = document.getElementById('tv-shows-pagination');
+        const modalTvControls = document.getElementById('modalTvControls');
+        const modalTvShowTitleEl = document.getElementById('modalTvShowTitle');
+        const modalSeasonSelect = document.getElementById('modalSeasonSelect');
+        const modalEpisodeSelect = document.getElementById('modalEpisodeSelect');
+        const nextEpisodeButton = document.getElementById('nextEpisodeButton');
 
-        const searchResultsView = document.getElementById('search-results-view');
-        const searchQueryDisplay = document.getElementById('search-query-display');
-        const searchMoviesGrid = document.getElementById('search-movies-grid');
-        const searchMoviesNoResults = document.getElementById('search-movies-no-results');
-        const searchTvShowsGrid = document.getElementById('search-tv-shows-grid');
-        const searchTvShowsNoResults = document.getElementById('search-tv-shows-no-results');
-
-        const detailModal = document.getElementById('detail-modal');
-        const detailModalTitle = document.getElementById('detail-modal-title');
-        const detailModalContent = document.getElementById('detail-modal-content');
-        const closeModalButton = document.getElementById('close-modal-button');
-
-        const messageBox = document.getElementById('message-box');
-        const messageBoxText = document.getElementById('message-box-text');
-
-        // State
-        let currentView = 'movies';
-        let currentPageMovies = 1;
-        let totalPagesMovies = 1;
-        let currentPageTvShows = 1;
-        let totalPagesTvShows = 1;
-        let currentSearchTerm = '';
-
-        // --- UTILITY FUNCTIONS ---
-        function showLoading() { loadingSpinner.classList.remove('hidden'); }
-        function hideLoading() { loadingSpinner.classList.add('hidden'); }
-
-        function showView(viewElement) {
-            [moviesDiscoverView, tvShowsDiscoverView, searchResultsView].forEach(v => v.classList.add('hidden'));
-            if (viewElement) viewElement.classList.remove('hidden');
-        }
-
-        function getPlaceholderUrl(width, height, text = "No Image") {
-            return `https://placehold.co/${width}x${height}/1F1F1F/777777?text=${encodeURIComponent(text)}&font=Inter`;
-        }
-
-        function showMessage(message, duration = 3000) {
-            messageBoxText.textContent = message;
-            messageBox.classList.remove('message-box-enter', 'message-box-leave', 'hidden');
-            messageBox.classList.add('message-box-active');
-            setTimeout(() => {
-                messageBox.classList.remove('message-box-active');
-                messageBox.classList.add('message-box-leave');
-                setTimeout(() => messageBox.classList.add('hidden'), 300); // Wait for animation
-            }, duration);
-        }
+        const discoverSection = document.getElementById('discoverSection');
+        let moviesScrollWrapper = document.getElementById('moviesScrollWrapper'); 
+        let tvScrollWrapper = document.getElementById('tvScrollWrapper'); 
         
-        async function fetchApi(url) {
+        const homeLink = document.getElementById('homeLink');
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const navDiscoverMobile = document.getElementById('navDiscoverMobile');
+
+        let currentTvShow = {
+            id: null,
+            name: null,
+            season: 1,
+            episode: 1,
+            totalSeasons: 0,
+            episodesInCurrentSeason: []
+        };
+        let seasonDetailsCache = {}; 
+
+        function showStatus(message, type = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.className = 'text-center my-4 h-6 ';
+            if (type === 'error') statusMessage.classList.add('text-red-400');
+            else if (type === 'success') statusMessage.classList.add('text-green-400');
+            else statusMessage.classList.add('text-gray-400');
+        }
+
+        function createLoadingSpinner() {
+            const spinner = document.createElement('div');
+            spinner.className = 'loading-spinner'; 
+            return spinner;
+        }
+
+        async function fetchFromTMDB(tmdbEndpoint, tmdbParams = {}) {
+            const proxyUrlParams = new URLSearchParams({
+                endpoint: tmdbEndpoint,
+                ...tmdbParams
+            });
+            const proxyUrl = `/api/tmdb-proxy?${proxyUrlParams.toString()}`;
+
             try {
-                const response = await fetch(url);
+                const response = await fetch(proxyUrl);
                 if (!response.ok) {
-                    console.error("API Error:", response.status, await response.text());
-                    showMessage(`Error: ${response.status}. Could not fetch data.`);
-                    return null;
+                    const errorData = await response.json().catch(() => ({}));
+                    let errorMessage = `Proxy API Error: ${response.status} ${response.statusText}.`;
+                    if (errorData.error) errorMessage += ` ${errorData.error}`;
+                    if (errorData.details && errorData.details.status_message) errorMessage += ` ${errorData.details.status_message}`;
+                    if (errorData.message) errorMessage += ` Server Message: ${errorData.message}`; // For serverless function's own errors
+                    throw new Error(errorMessage);
                 }
                 return await response.json();
             } catch (error) {
-                console.error("Fetch Error:", error);
-                showMessage("Network error or API unavailable.");
-                return null;
+                console.error('Error fetching from TMDB via proxy:', error);
+                showStatus(`API Error: ${error.message}`, 'error');
+                throw error;
             }
         }
 
-        // --- RENDERING FUNCTIONS ---
-        function createItemCard(item, type) {
-            const card = document.createElement('div');
-            card.className = 'bg-neutral-800 rounded-lg shadow-lg overflow-hidden cursor-pointer transform hover:scale-105 transition-transform duration-200 ease-in-out flex flex-col';
-            
-            const posterUrl = item.poster && item.poster !== "N/A" ? item.poster : getPlaceholderUrl(300, 450, item.title);
-            
-            // Sanitize title to prevent XSS if it were ever used in a vulnerable way (good practice)
-            const safeTitle = item.title ? String(item.title).replace(/</g, "&lt;").replace(/>/g, "&gt;") : "Untitled";
-            const year = item.year || 'N/A';
 
-            card.innerHTML = `
-                <div class="w-full card-aspect bg-neutral-700">
-                    <img src="${posterUrl}" alt="${safeTitle}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='${getPlaceholderUrl(300,450,safeTitle)}';">
-                </div>
-                <div class="p-3 flex flex-col flex-grow">
-                    <h3 class="text-sm sm:text-md font-semibold text-white truncate" title="${safeTitle}">${safeTitle}</h3>
-                    <p class="text-xs text-gray-400 mt-1">${year}</p>
-                </div>
-            `;
-            card.addEventListener('click', () => openDetailModal(item.id, type, safeTitle, posterUrl, item));
-            return card;
-        }
+        async function searchTMDB(query) {
+            showStatus('');
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = ''; 
+            const spinner = createLoadingSpinner();
+            spinner.classList.add('mx-auto', 'my-10'); 
+            mainContent.appendChild(spinner);
 
-        function renderItems(items, gridElement, itemType, noResultsElement = null) {
-            gridElement.innerHTML = ''; // Clear previous items
-            if (noResultsElement) noResultsElement.classList.add('hidden');
+            try {
+                const data = await fetchFromTMDB('search/multi', { query });
+                mainContent.innerHTML = ''; 
 
-            if (items && items.length > 0) {
-                items.forEach(item => {
-                    // The API might have different structures for id (e.g. imdb_id or id)
-                    // We need to ensure 'item.id' is correctly sourced.
-                    // Assuming discover API returns 'id' as the primary identifier.
-                    // If it's nested (e.g. item.ids.tmdb), adjust accordingly.
-                    // For now, let's assume 'id' is directly available.
-                    if (!item.id && item.imdb_id) item.id = item.imdb_id; // Fallback if 'id' is missing but 'imdb_id' exists
-
-                    if (item.id) { // Only render if we have an ID
-                        gridElement.appendChild(createItemCard(item, itemType));
+                if (data.results && data.results.length > 0) {
+                    const firstResult = data.results.find(r => r.media_type === 'movie' || r.media_type === 'tv');
+                    if (firstResult) {
+                        if (firstResult.media_type === 'movie') {
+                            playMovie(firstResult.id, firstResult.title || firstResult.original_name);
+                        } else if (firstResult.media_type === 'tv') {
+                            currentTvShow.id = firstResult.id;
+                            currentTvShow.name = firstResult.name || firstResult.original_name;
+                            currentTvShow.season = 1;
+                            currentTvShow.episode = 1;
+                            await updateAndShowTVControlsInModal();
+                            playTvShow();
+                        }
+                        mainContent.appendChild(discoverSection); 
+                        reinitializeScrollableContent(); 
+                        loadPopularContent(); 
                     } else {
-                        console.warn("Item skipped due to missing ID:", item);
+                        showStatus('No relevant movie or TV show found.', 'info');
+                        mainContent.appendChild(discoverSection);
+                        reinitializeScrollableContent();
+                        loadPopularContent();
                     }
-                });
-            } else {
-                if (noResultsElement) {
-                    noResultsElement.classList.remove('hidden');
                 } else {
-                    gridElement.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">No ${itemType}s found.</p>`;
+                    showStatus(`No results found for "${query}".`, 'info');
+                    mainContent.appendChild(discoverSection);
+                    reinitializeScrollableContent();
+                    loadPopularContent();
                 }
+            } catch (error) {
+                mainContent.innerHTML = ''; 
+                mainContent.appendChild(discoverSection); 
+                reinitializeScrollableContent();
+                loadPopularContent();
             }
         }
         
-        function renderPagination(container, currentPage, totalPages, pageChangeHandler) {
-            container.innerHTML = '';
-            if (totalPages <= 1) return;
-
-            const createButton = (text, page, enabled = true) => {
-                const button = document.createElement('button');
-                button.textContent = text;
-                button.className = `bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm ${!enabled ? 'opacity-50 cursor-not-allowed' : ''}`;
-                if (enabled) {
-                    button.addEventListener('click', () => pageChangeHandler(page));
-                } else {
-                    button.disabled = true;
+        async function loadPopularContent() {
+            showStatus('');
+            if (!moviesScrollWrapper || !tvScrollWrapper) {
+                console.warn("Scroll wrappers not found on loadPopularContent call. Reinitializing.");
+                reinitializeScrollableContent(); // Attempt to fix if elements were lost
+                if (!moviesScrollWrapper || !tvScrollWrapper) { // Still not found
+                     showStatus("UI elements missing. Please refresh.", "error");
+                     return;
                 }
-                return button;
-            };
+            }
+            moviesScrollWrapper.innerHTML = ''; 
+            tvScrollWrapper.innerHTML = '';
+            const movieSpinner = createLoadingSpinner();
+            const tvSpinner = createLoadingSpinner();
+            moviesScrollWrapper.appendChild(movieSpinner);
+            tvScrollWrapper.appendChild(tvSpinner);
+            updateScrollButtons(moviesScrollWrapper);
+            updateScrollButtons(tvScrollWrapper);
 
-            container.appendChild(createButton('Previous', currentPage - 1, currentPage > 1));
+            try {
+                const [moviesData, tvData] = await Promise.all([
+                    fetchFromTMDB('movie/popular'),
+                    fetchFromTMDB('tv/popular')
+                ]);
+
+                moviesScrollWrapper.innerHTML = '';
+                if (moviesData.results && moviesData.results.length > 0) {
+                    moviesData.results.forEach(movie => moviesScrollWrapper.appendChild(createContentCard(movie, 'movie')));
+                } else {
+                     moviesScrollWrapper.innerHTML = '<p class="text-center p-4">Could not load popular movies.</p>';
+                }
+                updateScrollButtons(moviesScrollWrapper);
+
+                tvScrollWrapper.innerHTML = '';
+                if (tvData.results && tvData.results.length > 0) {
+                    tvData.results.forEach(tvShow => tvScrollWrapper.appendChild(createContentCard(tvShow, 'tv')));
+                } else {
+                    tvScrollWrapper.innerHTML = '<p class="text-center p-4">Could not load popular TV shows.</p>';
+                }
+                updateScrollButtons(tvScrollWrapper);
+
+            } catch (error) {
+                 if (!moviesScrollWrapper.hasChildNodes() || moviesScrollWrapper.firstChild.classList.contains('loading-spinner')) {
+                    moviesScrollWrapper.innerHTML = `<p class="text-center p-4 text-red-400">Error loading movies.</p>`;
+                 }
+                 if (!tvScrollWrapper.hasChildNodes() || tvScrollWrapper.firstChild.classList.contains('loading-spinner')) {
+                    tvScrollWrapper.innerHTML = `<p class="text-center p-4 text-red-400">Error loading TV shows.</p>`;
+                 }
+            }
+        }
+
+        function createContentCard(item, type) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            const title = type === 'movie' ? (item.title || item.original_name) : (item.name || item.original_name);
+            const posterPath = item.poster_path ? `${TMDB_IMG_BASE_URL}${item.poster_path}` : 'https://placehold.co/180x270/1f1f1f/e50914?text=No+Poster';
             
-            const pageIndicator = document.createElement('span');
-            pageIndicator.className = "text-white mx-2 sm:mx-4";
-            pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
-            container.appendChild(pageIndicator);
-
-            container.appendChild(createButton('Next', currentPage + 1, currentPage < totalPages));
+            card.innerHTML = `
+                <img src="${posterPath}" alt="${title} Poster" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/180x270/1f1f1f/e50914?text=Error';">
+                <div class="p-2">
+                    <h4 class="font-semibold truncate text-sm" title="${title}">${title}</h4>
+                    <p class="text-xs text-gray-400">${type === 'movie' ? 'Movie' : 'TV Show'}</p>
+                </div>
+            `;
+            card.addEventListener('click', () => {
+                if (type === 'movie') {
+                    playMovie(item.id, title);
+                } else {
+                    currentTvShow.id = item.id;
+                    currentTvShow.name = title;
+                    currentTvShow.season = 1; 
+                    currentTvShow.episode = 1;
+                    updateAndShowTVControlsInModal();
+                    playTvShow(); 
+                }
+            });
+            return card;
         }
-
-        // --- DATA FETCHING AND DISPLAY ---
-        async function fetchAndDisplayMovies(page = 1) {
-            showLoading();
-            currentPageMovies = page;
-            const data = await fetchApi(`${BASE_DISCOVER_API_URL}/discover/movie?page=${page}&resultsPerPage=${RESULTS_PER_PAGE}&ordering=year&direction=desc`);
-            hideLoading();
-            if (data && data.results) {
-                renderItems(data.results, moviesGrid, 'movie');
-                // Assuming API provides total results or total pages. If not, this needs adjustment.
-                // For now, let's estimate total pages if API provides 'totalResults'.
-                totalPagesMovies = data.totalResults ? Math.ceil(data.totalResults / RESULTS_PER_PAGE) : (data.results.length > 0 ? currentPageMovies +1 : currentPageMovies); // Simple estimation
-                if (data.total_pages) totalPagesMovies = data.total_pages; // If API provides total_pages
-                renderPagination(moviesPaginationContainer, currentPageMovies, totalPagesMovies, fetchAndDisplayMovies);
-            } else {
-                 moviesGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">Could not load movies. Please try again later.</p>`;
-                 totalPagesMovies = 1; // Reset pagination if fetch fails
-                 renderPagination(moviesPaginationContainer, currentPageMovies, totalPagesMovies, fetchAndDisplayMovies);
-            }
-        }
-
-        async function fetchAndDisplayTvShows(page = 1) {
-            showLoading();
-            currentPageTvShows = page;
-            const data = await fetchApi(`${BASE_DISCOVER_API_URL}/discover/tv?page=${page}&resultsPerPage=${RESULTS_PER_PAGE}&ordering=year&direction=desc`);
-            hideLoading();
-            if (data && data.results) {
-                renderItems(data.results, tvShowsGrid, 'tv');
-                totalPagesTvShows = data.totalResults ? Math.ceil(data.totalResults / RESULTS_PER_PAGE) : (data.results.length > 0 ? currentPageTvShows + 1 : currentPageTvShows);
-                if (data.total_pages) totalPagesTvShows = data.total_pages;
-                renderPagination(tvShowsPaginationContainer, currentPageTvShows, totalPagesTvShows, fetchAndDisplayTvShows);
-            } else {
-                tvShowsGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">Could not load TV shows. Please try again later.</p>`;
-                totalPagesTvShows = 1;
-                renderPagination(tvShowsPaginationContainer, currentPageTvShows, totalPagesTvShows, fetchAndDisplayTvShows);
-            }
-        }
-
-        async function performSearch(query) {
-            if (query.length < 3) {
-                showMessage("Search query must be at least 3 characters long.");
+        
+        async function updateAndShowTVControlsInModal() {
+            if (!currentTvShow.id) {
+                modalTvControls.classList.add('hidden');
                 return;
             }
-            currentSearchTerm = query;
-            showLoading();
-            searchQueryDisplay.textContent = query;
-            showView(searchResultsView);
 
-            // Fetch movies
-            const movieData = await fetchApi(`${BASE_DISCOVER_API_URL}/discover/movie?query=${encodeURIComponent(query)}&resultsPerPage=${RESULTS_PER_PAGE}&direction=desc&page=1`);
-            if (movieData && movieData.results) {
-                renderItems(movieData.results, searchMoviesGrid, 'movie', searchMoviesNoResults);
-            } else {
-                searchMoviesGrid.innerHTML = '';
-                searchMoviesNoResults.classList.remove('hidden');
-            }
+            modalTvShowTitleEl.textContent = currentTvShow.name || 'Selected TV Show';
+            modalTvControls.classList.remove('hidden');
 
-            // Fetch TV shows
-            const tvData = await fetchApi(`${BASE_DISCOVER_API_URL}/discover/tv?query=${encodeURIComponent(query)}&resultsPerPage=${RESULTS_PER_PAGE}&direction=desc&page=1`);
-            if (tvData && tvData.results) {
-                renderItems(tvData.results, searchTvShowsGrid, 'tv', searchTvShowsNoResults);
-            } else {
-                searchTvShowsGrid.innerHTML = '';
-                searchTvShowsNoResults.classList.remove('hidden');
-            }
-            hideLoading();
-        }
+            modalSeasonSelect.disabled = true;
+            modalEpisodeSelect.disabled = true;
+            modalSeasonSelect.innerHTML = '<option>Loading...</option>';
+            modalEpisodeSelect.innerHTML = '<option>Loading...</option>';
+            nextEpisodeButton.disabled = true;
 
-        // --- MODAL LOGIC ---
-        function openDetailModal(id, type, title, posterUrl, itemData) { // itemData passed for TV show posters
-            detailModalTitle.textContent = title;
-            detailModalContent.innerHTML = ''; // Clear previous content
+            try {
+                const tvDetails = await fetchFromTMDB(`tv/${currentTvShow.id}`);
+                currentTvShow.totalSeasons = tvDetails.number_of_seasons;
+                let validSeasons = tvDetails.seasons.filter(s => s.season_number > 0 && s.episode_count > 0);
+                 if (validSeasons.length === 0 && tvDetails.seasons.length > 0) {
+                    validSeasons = tvDetails.seasons.filter(s => s.episode_count > 0); 
+                }
 
-            if (type === 'movie') {
-                const iframeSrc = `${BASE_CONTENT_URL}/movie/${id}`;
-                detailModalContent.innerHTML = `
-                    <div class="w-full h-full modal-iframe-aspect">
-                        <iframe src="${iframeSrc}" class="w-full h-full" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-2 p-2">Attempting to load content for "${title}". If it doesn't load, the provider may not allow embedding or the content might be unavailable.</p>
-                `;
-            } else if (type === 'tv') {
-                // Use poster from itemData if available, otherwise the one passed (which might be a placeholder)
-                const actualPosterUrl = (itemData && itemData.poster && itemData.poster !== "N/A") ? itemData.poster : posterUrl;
+                populateDropdown(modalSeasonSelect, validSeasons, 'season_number', 'name', 'S');
+                if (validSeasons.find(s => s.season_number === currentTvShow.season)) {
+                    modalSeasonSelect.value = currentTvShow.season;
+                } else if (validSeasons.length > 0) {
+                    currentTvShow.season = validSeasons[0].season_number; 
+                    modalSeasonSelect.value = currentTvShow.season;
+                }
+                modalSeasonSelect.disabled = false;
                 
-                detailModalContent.innerHTML = `
-                    <div class="flex flex-col md:flex-row gap-4 items-start">
-                        <div class="w-full md:w-1/3 flex-shrink-0">
-                             <img src="${actualPosterUrl}" alt="${title}" class="w-full h-auto object-cover rounded-md shadow-md" onerror="this.onerror=null;this.src='${getPlaceholderUrl(200,300,title)}';">
-                        </div>
-                        <div class="w-full md:w-2/3">
-                            <p class="text-gray-300 mb-3 text-sm">Enter season and episode number for "${title}" to watch.</p>
-                            <div class="mb-3">
-                                <label for="season-input" class="block text-sm font-medium text-gray-300">Season:</label>
-                                <input type="number" id="season-input" value="1" min="1" class="mt-1 block w-full bg-neutral-700 border-neutral-600 text-white rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm p-2">
-                            </div>
-                            <div class="mb-4">
-                                <label for="episode-input" class="block text-sm font-medium text-gray-300">Episode:</label>
-                                <input type="number" id="episode-input" value="1" min="1" class="mt-1 block w-full bg-neutral-700 border-neutral-600 text-white rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm p-2">
-                            </div>
-                            <button id="watch-tv-episode-button" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors">Load Episode</button>
+                await fetchEpisodesForModalSeason(currentTvShow.id, currentTvShow.season);
+            } catch (error) {
+                modalSeasonSelect.innerHTML = '<option>Error</option>';
+                modalEpisodeSelect.innerHTML = '<option>Error</option>';
+            }
+        }
+        
+        async function fetchEpisodesForModalSeason(tvId, seasonNumber) {
+            modalEpisodeSelect.disabled = true;
+            modalEpisodeSelect.innerHTML = '<option>Loading...</option>';
+            nextEpisodeButton.disabled = true;
+            const cacheKey = `${tvId}-${seasonNumber}`;
+
+            try {
+                let seasonDetails;
+                if (seasonDetailsCache[cacheKey]) {
+                    seasonDetails = seasonDetailsCache[cacheKey];
+                } else {
+                    seasonDetails = await fetchFromTMDB(`tv/${tvId}/season/${seasonNumber}`);
+                    seasonDetailsCache[cacheKey] = seasonDetails; 
+                }
+                
+                currentTvShow.episodesInCurrentSeason = seasonDetails.episodes || [];
+                populateDropdown(modalEpisodeSelect, currentTvShow.episodesInCurrentSeason, 'episode_number', 'name', 'E');
+                
+                if (currentTvShow.episodesInCurrentSeason.find(ep => ep.episode_number === currentTvShow.episode)) {
+                    modalEpisodeSelect.value = currentTvShow.episode;
+                } else if (currentTvShow.episodesInCurrentSeason.length > 0) {
+                    currentTvShow.episode = currentTvShow.episodesInCurrentSeason[0].episode_number; 
+                    modalEpisodeSelect.value = currentTvShow.episode;
+                }
+                
+                modalEpisodeSelect.disabled = false;
+                updateNextEpisodeButtonState();
+
+            } catch (error) {
+                modalEpisodeSelect.innerHTML = '<option>Error</option>';
+            }
+        }
+
+        function populateDropdown(selectEl, items, valueKey, textKey, prefix = '') {
+            selectEl.innerHTML = '';
+            if (!items || items.length === 0) {
+                selectEl.innerHTML = `<option value="">N/A</option>`;
+                return;
+            }
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item[valueKey];
+                option.textContent = `${prefix}${item[valueKey]}${item[textKey] && item[textKey] !== `Episode ${item[valueKey]}` ? `: ${item[textKey]}` : ''}`;
+                selectEl.appendChild(option);
+            });
+        }
+
+        function updateNextEpisodeButtonState() {
+            if (!currentTvShow.id || currentTvShow.episodesInCurrentSeason.length === 0) {
+                nextEpisodeButton.disabled = true;
+                return;
+            }
+            const currentEpisodeIndex = currentTvShow.episodesInCurrentSeason.findIndex(ep => ep.episode_number === currentTvShow.episode);
+            const isLastEpisodeInSeason = currentEpisodeIndex === currentTvShow.episodesInCurrentSeason.length - 1;
+            const isLastSeason = currentTvShow.season === currentTvShow.totalSeasons;
+
+            if (isLastEpisodeInSeason && isLastSeason) {
+                nextEpisodeButton.disabled = true;
+            } else {
+                nextEpisodeButton.disabled = false;
+            }
+        }
+        
+        function playMovie(id, title) {
+            modalTvControls.classList.add('hidden');
+            const embedURL = `${ANYEMBED_BASE_URL}/movie/${id}?server=${DEFAULT_SERVER}`;
+            playerModalTitle.textContent = title || 'Movie';
+            loadPlayer(embedURL);
+        }
+
+        function playTvShow() {
+            if (!currentTvShow.id) return;
+            modalTvControls.classList.remove('hidden'); 
+            const embedURL = `${ANYEMBED_BASE_URL}/tv/${currentTvShow.id}/${currentTvShow.season}/${currentTvShow.episode}?server=${DEFAULT_SERVER}`;
+            playerModalTitle.textContent = `${currentTvShow.name || 'TV Show'} (S${currentTvShow.season} E${currentTvShow.episode})`;
+            loadPlayer(embedURL);
+            updateNextEpisodeButtonState(); 
+        }
+
+        function loadPlayer(url) {
+            playerContainer.innerHTML = `<iframe src="${url}" allowfullscreen></iframe>`;
+            playerModal.style.display = "block";
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePlayerModal() {
+            playerModal.style.display = "none";
+            playerContainer.innerHTML = ""; 
+            document.body.style.overflow = 'auto';
+            modalTvControls.classList.add('hidden'); 
+        }
+
+        searchButton.addEventListener('click', () => {
+            const query = searchInput.value.trim();
+            if (query) searchTMDB(query);
+        });
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = searchInput.value.trim();
+                if (query) searchTMDB(query);
+            }
+        });
+
+        modalSeasonSelect.addEventListener('change', async () => {
+            currentTvShow.season = parseInt(modalSeasonSelect.value);
+            currentTvShow.episode = 1; 
+            await fetchEpisodesForModalSeason(currentTvShow.id, currentTvShow.season);
+            playTvShow();
+        });
+
+
+        modalEpisodeSelect.addEventListener('change', () => {
+            currentTvShow.episode = parseInt(modalEpisodeSelect.value);
+            playTvShow();
+        });
+
+        nextEpisodeButton.addEventListener('click', async () => {
+            if (!currentTvShow.id || nextEpisodeButton.disabled) return;
+
+            const currentEpisodeIndex = currentTvShow.episodesInCurrentSeason.findIndex(ep => ep.episode_number === currentTvShow.episode);
+            
+            if (currentEpisodeIndex < currentTvShow.episodesInCurrentSeason.length - 1) {
+                currentTvShow.episode = currentTvShow.episodesInCurrentSeason[currentEpisodeIndex + 1].episode_number;
+                modalEpisodeSelect.value = currentTvShow.episode; 
+                playTvShow();
+            } else if (currentTvShow.season < currentTvShow.totalSeasons) {
+                currentTvShow.season++;
+                currentTvShow.episode = 1; 
+                modalSeasonSelect.value = currentTvShow.season; 
+            }
+        });
+
+        closeModalButton.addEventListener('click', closePlayerModal);
+        window.addEventListener('click', (event) => { if (event.target === playerModal) closePlayerModal(); });
+        window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && playerModal.style.display === 'block') closePlayerModal(); });
+
+        function reinitializeScrollableContent() {
+            moviesScrollWrapper = document.getElementById('moviesScrollWrapper');
+            tvScrollWrapper = document.getElementById('tvScrollWrapper');
+            document.querySelectorAll('.scroll-button').forEach(button => {
+                button.removeEventListener('click', handleScrollButtonClick); 
+                button.addEventListener('click', handleScrollButtonClick);
+            });
+             if(moviesScrollWrapper) {
+                moviesScrollWrapper.removeEventListener('scroll', updateMoviesScrollButtons);
+                moviesScrollWrapper.addEventListener('scroll', updateMoviesScrollButtons, { passive: true });
+                updateScrollButtons(moviesScrollWrapper);
+             }
+             if(tvScrollWrapper) {
+                tvScrollWrapper.removeEventListener('scroll', updateTvScrollButtons);
+                tvScrollWrapper.addEventListener('scroll', updateTvScrollButtons, { passive: true });
+                updateScrollButtons(tvScrollWrapper); 
+             }
+        }
+        function updateMoviesScrollButtons() { updateScrollButtons(moviesScrollWrapper); }
+        function updateTvScrollButtons() { updateScrollButtons(tvScrollWrapper); }
+        
+        homeLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            searchInput.value = '';
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = `
+                <div id="statusMessage" class="text-center my-4 h-6"></div>
+                <section id="discoverSection">
+                    <h2 class="text-3xl font-bold mb-6 border-l-4 border-red-600 pl-3">Most Popular</h2>
+                    <div id="discoverGridMovies" class="mb-10">
+                        <h3 class="text-2xl font-semibold mb-4">Movies</h3>
+                        <div class="horizontal-scroll-container">
+                            <button class="scroll-button prev" data-target="moviesScrollWrapper"><i class="fas fa-chevron-left"></i></button>
+                            <div id="moviesScrollWrapper" class="scroll-wrapper flex space-x-4"></div>
+                            <button class="scroll-button next" data-target="moviesScrollWrapper"><i class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
-                    <div id="tv-episode-iframe-container" class="mt-4 w-full h-0 modal-iframe-aspect transition-all duration-300 ease-in-out overflow-hidden"></div>
-                     <p id="tv-embed-info" class="text-xs text-gray-400 mt-2 p-2 hidden">Attempting to load episode. If it doesn't load, the provider may not allow embedding or the content might be unavailable.</p>
-                `;
+                    <div id="discoverGridTV">
+                        <h3 class="text-2xl font-semibold mb-4">TV Shows</h3>
+                        <div class="horizontal-scroll-container">
+                            <button class="scroll-button prev" data-target="tvScrollWrapper"><i class="fas fa-chevron-left"></i></button>
+                            <div id="tvScrollWrapper" class="scroll-wrapper flex space-x-4"></div>
+                            <button class="scroll-button next" data-target="tvScrollWrapper"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </section>`;
+            window.discoverSection = document.getElementById('discoverSection'); 
+            reinitializeScrollableContent();
+            loadPopularContent();
+        });
+        
+        mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+        navDiscoverMobile.addEventListener('click', (e) => {
+            e.preventDefault();
+            mobileMenu.classList.add('hidden');
+            homeLink.click();
+        });
 
-                const watchButton = document.getElementById('watch-tv-episode-button');
-                const seasonInput = document.getElementById('season-input');
-                const episodeInput = document.getElementById('episode-input');
-                const iframeContainer = document.getElementById('tv-episode-iframe-container');
-                const tvEmbedInfo = document.getElementById('tv-embed-info');
+        function handleScrollButtonClick(event) {
+            const button = event.currentTarget;
+            const targetId = button.dataset.target;
+            const scrollWrapper = document.getElementById(targetId);
+            if (!scrollWrapper) return;
 
-                watchButton.addEventListener('click', () => {
-                    const season = seasonInput.value;
-                    const episode = episodeInput.value;
-                    if (season && episode) {
-                        const iframeSrc = `${BASE_CONTENT_URL}/tv/${id}-${season}-${episode}`;
-                        iframeContainer.innerHTML = `<iframe src="${iframeSrc}" class="w-full h-full" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-                        iframeContainer.style.height = ''; // Reset to allow aspect ratio to control it
-                        tvEmbedInfo.classList.remove('hidden');
-                    } else {
-                        showMessage("Please enter valid season and episode numbers.");
-                    }
-                });
+            const scrollAmount = scrollWrapper.clientWidth * 0.8; 
+            if (button.classList.contains('next')) {
+                scrollWrapper.scrollLeft += scrollAmount;
+            } else if (button.classList.contains('prev')) {
+                scrollWrapper.scrollLeft -= scrollAmount;
             }
-            detailModal.classList.remove('hidden');
-            detailModal.classList.add('flex'); // Use flex for centering
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+         function updateScrollButtons(scrollWrapper) {
+            if (!scrollWrapper || !scrollWrapper.parentElement) return;
+            const prevButton = scrollWrapper.parentElement.querySelector('.scroll-button.prev');
+            const nextButton = scrollWrapper.parentElement.querySelector('.scroll-button.next');
+            if(!prevButton || !nextButton) return;
+
+            const isScrollable = scrollWrapper.scrollWidth > scrollWrapper.clientWidth;
+            if (!isScrollable) {
+                prevButton.style.display = 'none';
+                nextButton.style.display = 'none';
+                return;
+            }
+            prevButton.style.display = 'block';
+            nextButton.style.display = 'block';
+
+            prevButton.disabled = scrollWrapper.scrollLeft <= 0;
+            nextButton.disabled = scrollWrapper.scrollLeft + scrollWrapper.clientWidth >= scrollWrapper.scrollWidth - 5; 
         }
 
-        function closeModal() {
-            detailModal.classList.add('hidden');
-            detailModal.classList.remove('flex');
-            detailModalContent.innerHTML = ''; // Clear content to stop any playing media
-            document.body.style.overflow = 'auto';
-        }
-
-        // --- NAVIGATION ---
-        function navigateTo(pageName) {
-            currentView = pageName;
-            showLoading();
-            
-            // Update active link style
-            navLinks.forEach(link => {
-                link.classList.toggle('active', link.dataset.page === pageName);
-            });
-
-            if (pageName === 'movies') {
-                showView(moviesDiscoverView);
-                fetchAndDisplayMovies(currentPageMovies); // Or 1 if you want to reset
-            } else if (pageName === 'tv') {
-                showView(tvShowsDiscoverView);
-                fetchAndDisplayTvShows(currentPageTvShows); // Or 1
-            } else if (pageName === 'search') {
-                // Search is handled by performSearch, which calls showView(searchResultsView)
-                // This case is for if navigateTo is called directly with 'search'
-                if (currentSearchTerm) {
-                    performSearch(currentSearchTerm);
-                } else {
-                    // If no search term, maybe default to movies or show a message
-                    navigateTo('movies'); 
-                }
-            }
-            hideLoading(); // Should be hidden by specific fetch functions, but as a fallback
-            window.scrollTo(0, 0); // Scroll to top on navigation
-        }
-
-        // --- EVENT LISTENERS ---
-        logo.addEventListener('click', () => {
-            searchInput.value = ''; // Clear search on logo click
-            currentPageMovies = 1; // Reset to first page
-            navigateTo('movies');
-        });
-
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                searchInput.value = ''; // Clear search on nav click
-                if (link.dataset.page === 'movies') currentPageMovies = 1;
-                if (link.dataset.page === 'tv') currentPageTvShows = 1;
-                navigateTo(link.dataset.page);
-            });
-        });
-
-        searchInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                const searchTerm = searchInput.value.trim();
-                if (searchTerm) {
-                    performSearch(searchTerm);
-                } else {
-                     // If search is cleared and enter pressed, go to default view
-                    navigateTo('movies');
-                }
-            }
-        });
-        // Also handle search if user clears input and presses enter
-        searchInput.addEventListener('search', function() { // For the 'x' button in some browsers
-            if (!searchInput.value.trim()) {
-                navigateTo('movies'); // Or last active view
-            }
-        });
-
-
-        closeModalButton.addEventListener('click', closeModal);
-        detailModal.addEventListener('click', function(event) {
-            // Close modal if backdrop is clicked
-            if (event.target === detailModal) {
-                closeModal();
-            }
-        });
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape' && !detailModal.classList.contains('hidden')) {
-                closeModal();
-            }
-        });
-
-
-        // --- INITIALIZATION ---
-        function init() {
-            // Hide message box initially
-            messageBox.classList.add('hidden');
-            messageBox.classList.add('message-box-enter');
-
-            navigateTo('movies'); // Default view
-        }
-
-        // Start the app
-        document.addEventListener('DOMContentLoaded', init);
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        reinitializeScrollableContent(); 
+        loadPopularContent();
 
     </script>
 </body>
