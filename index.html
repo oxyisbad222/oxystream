@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
         html, body {
-            overscroll-behavior-y: contain; 
+            overscroll-behavior-y: contain;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -29,14 +29,14 @@
             transition: border-color 0.2s ease-in-out; width: 100%;
         }
         .input-field:focus, .select-field:focus { outline: none; border-color: #e50914; }
-        
+
         .card {
             background-color: #1f1f1f; border-radius: 0.5rem;
             overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease;
             cursor: pointer;
-            width: 180px; 
-            flex-shrink: 0; 
-            position: relative; 
+            width: 180px;
+            flex-shrink: 0;
+            position: relative;
         }
         .card:hover { transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .card img { width: 100%; height: 270px; object-fit: cover; }
@@ -55,38 +55,41 @@
             font-size: 0.9rem;
             cursor: pointer;
             transition: color 0.2s, transform 0.2s;
-            z-index: 5; 
+            z-index: 5;
         }
         .card .favorite-icon:hover { transform: scale(1.1); }
         .card .favorite-icon.is-favorite { color: #e50914; }
-        
-        .iframe-container { 
-            position: relative; overflow: hidden; width: 100%; 
-            padding-top: 56.25%; background-color: #000; flex-grow: 1; 
+
+        .iframe-container {
+            position: relative; overflow: hidden; width: 100%;
+            padding-top: 56.25%; background-color: #000; flex-grow: 1;
+            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on iOS */
+            touch-action: manipulation; /* Optimize touch interactions, prevent unintended browser gestures */
         }
-        .iframe-container iframe { 
-            position: absolute; top: 0; left: 0; bottom: 0; right: 0; 
-            width: 100%; height: 100%; 
-            border: none; 
-            pointer-events: auto; 
+        .iframe-container iframe {
+            position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            width: 100%; height: 100%;
+            border: none;
+            pointer-events: auto;
+            display: block; /* Ensure it's a block element */
         }
-        
+
         .modal { display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); }
         #infoModal { z-index: 1000; }
-        #playerModal { z-index: 1010; } 
+        #playerModal { z-index: 1010; }
 
-        .modal-content { 
+        .modal-content {
             background-color: #181818; border-radius: 8px;
-            width: 95vw; max-width: 900px; 
+            width: 95vw; max-width: 900px;
             max-height: 95vh; display: flex; flex-direction: column;
             position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            overflow-y: auto; padding: 15px; 
-            -webkit-overflow-scrolling: touch; 
+            overflow-y: auto; padding: 15px;
+            -webkit-overflow-scrolling: touch;
         }
-        .close-button { 
+        .close-button {
             color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1;
-            position: absolute; top: 8px; right: 10px; z-index: 1020; /* Ensure close button is above iframe content if any overlap */
+            position: absolute; top: 8px; right: 10px; z-index: 1020;
             width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
         }
         .close-button:hover, .close-button:focus { color: #e50914; text-decoration: none; }
@@ -100,8 +103,8 @@
 
         .horizontal-scroll-container { position: relative; }
         .scroll-wrapper {
-            display: flex; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 1rem; 
-            -ms-overflow-style: none; scrollbar-width: none;  
+            display: flex; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 1rem;
+            -ms-overflow-style: none; scrollbar-width: none;
         }
         .scroll-wrapper::-webkit-scrollbar { display: none; }
         .scroll-button {
@@ -117,7 +120,7 @@
         .scroll-button:disabled { opacity:0.3; cursor: not-allowed;}
 
         #modalTvControls, #infoModalTvControls { background-color: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; margin-top: 10px; }
-        .btn-action, .btn-next-episode { 
+        .btn-action, .btn-next-episode {
             background-color: #e50914; color: white; font-weight: bold;
             padding: 0.6rem 1.2rem; border-radius: 0.25rem;
             transition: background-color 0.2s ease-in-out; cursor: pointer; border: none;
@@ -125,7 +128,7 @@
         }
         .btn-action:hover, .btn-next-episode:hover { background-color: #f40612; }
         .btn-action:disabled, .btn-next-episode:disabled { background-color: #555; cursor: not-allowed; }
-        
+
         #searchResultsGrid, #favoritesGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
         #searchResultsGrid .card, #favoritesGrid .card { width: 100%; }
 
@@ -147,18 +150,18 @@
 
 
         #infoModalContent .info-poster { width: 120px; height: 180px; object-fit: cover; border-radius: 0.25rem; flex-shrink: 0;}
-        @media (min-width: 640px) { 
+        @media (min-width: 640px) {
             #infoModalContent .info-poster { width: 150px; height: 225px; }
         }
 
 
         @media (max-width: 768px) {
             .modal-content {
-                width: 98vw; height: auto; max-height: 98vh; 
-                padding: 10px; 
+                width: 98vw; height: auto; max-height: 98vh;
+                padding: 10px;
             }
              #playerModalTitle, #infoModalTitle {
-                font-size: 1rem; margin-bottom: 8px; padding-right: 35px; 
+                font-size: 1rem; margin-bottom: 8px; padding-right: 35px;
             }
             #modalTvControls, #infoModalTvControls { padding: 8px; margin-top: 10px; }
             #modalTvControls .select-field, #modalTvControls .btn-next-episode,
@@ -170,18 +173,18 @@
             .btn-action { padding: 0.5rem 1rem; font-size: 0.9rem; }
         }
         .donation-banner {
-            background-color: #e50914; 
+            background-color: #e50914;
             color: white;
             padding: 0.75rem 1rem;
             text-align: center;
             font-size: 0.9rem;
             font-weight: 500;
-            display: block; 
+            display: block;
             transition: background-color 0.2s ease-in-out;
-            text-decoration: none; 
+            text-decoration: none;
         }
         .donation-banner:hover {
-            background-color: #f40612; 
+            background-color: #f40612;
         }
     </style>
 </head>
@@ -236,12 +239,12 @@
     <a href="https://fundly.com/keep-skyemovie-free-for-everyone" id="donationBanner" class="donation-banner" target="_blank" rel="noopener noreferrer">
         ❤️ Donations help keep SkyeMovie free for everyone! Click here to support us. ❤️
     </a>
-    
+
     <main class="container mx-auto p-4 sm:p-6 lg:p-8" id="mainContent">
         <div id="statusMessage" class="text-center my-4 h-6"></div>
-        <section id="discoverSection"> 
+        <section id="discoverSection">
             <h2 id="contentAreaTitle" class="text-3xl font-bold mb-6 border-l-4 border-red-600 pl-3">Top Rated</h2>
-            
+
             <div id="moviesContainer" class="mb-10">
                 <h3 class="text-2xl font-semibold mb-4">Movies</h3>
                 <div class="horizontal-scroll-container">
@@ -290,7 +293,7 @@
                     <p class="text-sm text-gray-400 mb-1">Released: <span id="infoModalReleaseDate" class="font-semibold text-gray-200"></span></p>
                     <p class="text-sm text-gray-400 mb-2">Genres: <span id="infoModalGenres" class="font-semibold text-gray-200"></span></p>
                     <p id="infoModalOverview" class="text-sm mb-3 max-h-28 overflow-y-auto"></p>
-                    
+
                     <div id="infoModalTvControls" class="hidden space-y-2 mb-3">
                         <div class="flex items-center gap-2">
                             <label for="infoModalSeasonSelect" class="text-sm flex-shrink-0">Season:</label>
@@ -318,7 +321,7 @@
                 <span class="close-button" id="closePlayerModalButton">&times;</span>
             </div>
             <div id="playerContainer" class="iframe-container"></div>
-            
+
             <div id="modalTvControls" class="hidden">
                 <h4 id="modalTvShowTitle" class="text-md font-semibold mb-2"></h4>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
@@ -357,7 +360,7 @@
         const desktopSearchFilters = document.getElementById('desktopSearchFilters');
         const mobileSearchFilters = document.getElementById('mobileSearchFilters');
         const statusMessage = document.getElementById('statusMessage');
-        
+
         const infoModal = document.getElementById('infoModal');
         const infoModalTitle = document.getElementById('infoModalTitle');
         const infoModalPoster = document.getElementById('infoModalPoster');
@@ -371,7 +374,7 @@
         const infoModalPlayButton = document.getElementById('infoModalPlayButton');
         const infoModalFavoriteButton = document.getElementById('infoModalFavoriteButton');
         const closeInfoModalButton = document.getElementById('closeInfoModalButton');
-        
+
         const playerModal = document.getElementById('playerModal');
         const playerContainer = document.getElementById('playerContainer');
         const closePlayerModalButton = document.getElementById('closePlayerModalButton');
@@ -395,9 +398,9 @@
         const favoritesGrid = document.getElementById('favoritesGrid');
 
 
-        let moviesScrollWrapper = document.getElementById('moviesScrollWrapper'); 
-        let tvScrollWrapper = document.getElementById('tvScrollWrapper'); 
-        
+        let moviesScrollWrapper = document.getElementById('moviesScrollWrapper');
+        let tvScrollWrapper = document.getElementById('tvScrollWrapper');
+
         const homeLink = document.getElementById('homeLink');
         const mobileMenuButton = document.getElementById('mobileMenuButton');
         const mobileMenu = document.getElementById('mobileMenu');
@@ -408,12 +411,12 @@
 
 
         let currentTvShow = { id: null, name: null, season: 1, episode: 1, totalSeasons: 0, episodesInCurrentSeason: [] };
-        let seasonDetailsCache = {}; 
-        let currentSearchFilter = 'multi'; 
+        let seasonDetailsCache = {};
+        let currentSearchFilter = 'multi';
         let currentSearchResults = [];
         let currentSearchQuery = '';
         let originalBodyOverflow = '';
-        let originalHtmlOverflow = ''; 
+        let originalHtmlOverflow = '';
         let currentInfoModalData = null;
         let isAnyModalOpenForScrollLock = false;
 
@@ -428,7 +431,7 @@
 
         function createLoadingSpinner() {
             const spinner = document.createElement('div');
-            spinner.className = 'loading-spinner'; 
+            spinner.className = 'loading-spinner';
             return spinner;
         }
 
@@ -459,7 +462,7 @@
             } catch (error) {
                 console.error('Full error in fetchFromTMDB:', error);
                 showStatus(error.message || "An unknown API error occurred.", 'error');
-                throw error; 
+                throw error;
             }
         }
 
@@ -509,18 +512,18 @@
                 }
                 return item;
             });
-            
-            currentSearchResults = processedResults.filter(item => 
+
+            currentSearchResults = processedResults.filter(item =>
                 (item.media_type === 'movie' || item.media_type === 'tv') && item.poster_path
             );
-            
+
             sortResultsSelect.value = 'popularity.desc';
             sortAndDisplayResults();
         }
 
         async function executeSearch(query) {
             if (!query) return;
-            currentSearchQuery = query; 
+            currentSearchQuery = query;
             showStatus('');
             contentAreaTitle.classList.add('hidden');
             moviesContainer.classList.add('hidden');
@@ -534,7 +537,7 @@
             let endpoint = 'search/multi';
             if (currentSearchFilter === 'movie') endpoint = 'search/movie';
             else if (currentSearchFilter === 'tv') endpoint = 'search/tv';
-            
+
             try {
                 const data = await fetchFromTMDB(endpoint, { query });
                 displaySearchResultsUI(data.results || [], query);
@@ -543,7 +546,7 @@
                 searchResultsGrid.innerHTML = `<p class="col-span-full text-center text-red-400">Error during search. Please try again.</p>`;
             }
         }
-        
+
         async function loadTopRatedContent() {
             showStatus('');
             contentAreaTitle.textContent = "Top Rated";
@@ -559,8 +562,8 @@
 
 
             if (!moviesScrollWrapper || !tvScrollWrapper) {
-                reinitializeScrollableContent(); 
-                if (!moviesScrollWrapper || !tvScrollWrapper) { 
+                reinitializeScrollableContent();
+                if (!moviesScrollWrapper || !tvScrollWrapper) {
                      showStatus("UI elements missing. Please refresh.", "error"); return;
                 }
             }
@@ -600,7 +603,7 @@
             const title = (item.title || item.name || item.original_name || "Untitled");
             const posterPath = item.poster_path ? `${TMDB_IMG_BASE_URL}${item.poster_path}` : 'https://placehold.co/180x270/1f1f1f/e50914?text=No+Poster';
             const isFav = isFavorite(item.id, type);
-            
+
             card.innerHTML = `
                 <img src="${posterPath}" alt="${title} Poster" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/180x270/1f1f1f/e50914?text=Error';">
                 <div class="p-2">
@@ -610,29 +613,29 @@
                 <div class="favorite-icon ${isFav ? 'is-favorite' : ''}" data-id="${item.id}" data-type="${type}" data-title="${title}" data-poster="${item.poster_path || ''}">
                     <i class="${isFav ? 'fas' : 'far'} fa-heart"></i>
                 </div>`;
-            
+
             card.querySelector('img').addEventListener('click', () => openInfoModal(item.id, type));
             card.querySelector('h4').addEventListener('click', () => openInfoModal(item.id, type));
             card.querySelector('.favorite-icon').addEventListener('click', (e) => {
-                e.stopPropagation(); 
+                e.stopPropagation();
                 const favIconContainer = e.currentTarget;
                 const favData = {
                     id: parseInt(favIconContainer.dataset.id),
                     type: favIconContainer.dataset.type,
-                    title: favIconContainer.dataset.title, 
+                    title: favIconContainer.dataset.title,
                     poster_path: favIconContainer.dataset.poster
                 };
-                toggleFavorite(favData, favIconContainer); 
+                toggleFavorite(favData, favIconContainer);
             });
             return card;
         }
-        
+
         async function openInfoModal(id, type) {
             showStatus("Loading details...", "info");
             try {
                 const details = await fetchFromTMDB(`${type}/${id}`);
                 showStatus("");
-                currentInfoModalData = { ...details, type: type, id: id }; 
+                currentInfoModalData = { ...details, type: type, id: id };
 
                 infoModalTitle.textContent = details.title || details.name || "Details";
                 infoModalPoster.src = details.poster_path ? `${TMDB_IMG_BASE_URL}${details.poster_path}` : 'https://placehold.co/150x225/1f1f1f/e50914?text=No+Poster';
@@ -645,18 +648,18 @@
 
                 if (type === 'tv') {
                     infoModalTvControls.classList.remove('hidden');
-                    currentTvShow.id = id; 
+                    currentTvShow.id = id;
                     currentTvShow.name = details.name || details.original_name;
-                    currentTvShow.season = 1; 
-                    currentTvShow.episode = 1; 
+                    currentTvShow.season = 1;
+                    currentTvShow.episode = 1;
                     currentTvShow.totalSeasons = details.number_of_seasons;
-                    
+
                     let validSeasons = details.seasons.filter(s => s.season_number > 0 && s.episode_count > 0);
                     if (validSeasons.length === 0 && details.seasons.length > 0) validSeasons = details.seasons.filter(s => s.episode_count > 0);
-                    
+
                     populateDropdown(infoModalSeasonSelect, validSeasons, 'season_number', 'name', 'S');
                     if (validSeasons.length > 0) {
-                        infoModalSeasonSelect.value = currentTvShow.season; 
+                        infoModalSeasonSelect.value = currentTvShow.season;
                         await fetchEpisodesForInfoModalSeason(id, currentTvShow.season);
                     } else {
                         infoModalSeasonSelect.innerHTML = '<option>N/A</option>';
@@ -673,26 +676,26 @@
 
         async function fetchEpisodesForInfoModalSeason(tvId, seasonNumber) {
             infoModalEpisodeSelect.disabled = true; infoModalEpisodeSelect.innerHTML = '<option>Loading...</option>';
-            const cacheKey = `${tvId}-${seasonNumber}-info`; 
+            const cacheKey = `${tvId}-${seasonNumber}-info`;
             try {
                 let seasonDetails;
                 if (seasonDetailsCache[cacheKey]) seasonDetails = seasonDetailsCache[cacheKey];
                 else { seasonDetails = await fetchFromTMDB(`tv/${tvId}/season/${seasonNumber}`); seasonDetailsCache[cacheKey] = seasonDetails; }
-                
+
                 const episodes = seasonDetails.episodes || [];
                 populateDropdown(infoModalEpisodeSelect, episodes, 'episode_number', 'name', 'E');
                 if (episodes.length > 0) {
-                    infoModalEpisodeSelect.value = 1; 
-                    currentTvShow.episode = 1; 
+                    infoModalEpisodeSelect.value = 1;
+                    currentTvShow.episode = 1;
                 }
                 infoModalEpisodeSelect.disabled = false;
             } catch (error) { infoModalEpisodeSelect.innerHTML = '<option>Error</option>'; }
         }
-        
+
         infoModalSeasonSelect.addEventListener('change', async () => {
             if (!currentInfoModalData || currentInfoModalData.type !== 'tv') return;
             currentTvShow.season = parseInt(infoModalSeasonSelect.value);
-            currentTvShow.episode = 1; 
+            currentTvShow.episode = 1;
             await fetchEpisodesForInfoModalSeason(currentInfoModalData.id, currentTvShow.season);
         });
 
@@ -703,11 +706,11 @@
 
         infoModalPlayButton.addEventListener('click', () => {
             if (!currentInfoModalData) return;
-            
-            const playData = { ...currentInfoModalData }; 
 
-            closeModal(infoModal); 
-            
+            const playData = { ...currentInfoModalData };
+
+            closeModal(infoModal);
+
             setTimeout(() => {
                 if (playData.type === 'movie') {
                     playMovie(playData.id, playData.title || playData.original_name);
@@ -716,13 +719,13 @@
                     currentTvShow.name = playData.name || playData.original_name;
                     currentTvShow.season = parseInt(infoModalSeasonSelect.value) || 1;
                     currentTvShow.episode = parseInt(infoModalEpisodeSelect.value) || 1;
-                    updateAndShowTVControlsInPlayerModal(); 
+                    updateAndShowTVControlsInPlayerModal();
                     playTvShow();
                 }
-            }, 50); 
+            }, 50);
         });
-        
-        async function updateAndShowTVControlsInPlayerModal() { 
+
+        async function updateAndShowTVControlsInPlayerModal() {
             if (!currentTvShow.id) { modalTvControls.classList.add('hidden'); return; }
             modalTvShowTitleEl.textContent = currentTvShow.name || 'Selected TV Show';
             modalTvControls.classList.remove('hidden');
@@ -733,18 +736,18 @@
                 const tvDetails = await fetchFromTMDB(`tv/${currentTvShow.id}`);
                 currentTvShow.totalSeasons = tvDetails.number_of_seasons;
                 let validSeasons = tvDetails.seasons.filter(s => s.season_number > 0 && s.episode_count > 0);
-                if (validSeasons.length === 0 && tvDetails.seasons.length > 0) validSeasons = tvDetails.seasons.filter(s => s.episode_count > 0); 
+                if (validSeasons.length === 0 && tvDetails.seasons.length > 0) validSeasons = tvDetails.seasons.filter(s => s.episode_count > 0);
                 populateDropdown(modalSeasonSelect, validSeasons, 'season_number', 'name', 'S');
                 if (validSeasons.find(s => s.season_number === currentTvShow.season)) modalSeasonSelect.value = currentTvShow.season;
                 else if (validSeasons.length > 0) { currentTvShow.season = validSeasons[0].season_number; modalSeasonSelect.value = currentTvShow.season; }
                 modalSeasonSelect.disabled = false;
-                await fetchEpisodesForPlayerModalSeason(currentTvShow.id, currentTvShow.season); 
+                await fetchEpisodesForPlayerModalSeason(currentTvShow.id, currentTvShow.season);
             } catch (error) { modalSeasonSelect.innerHTML = '<option>Error</option>'; modalEpisodeSelect.innerHTML = '<option>Error</option>'; }
         }
-        
-        async function fetchEpisodesForPlayerModalSeason(tvId, seasonNumber) { 
+
+        async function fetchEpisodesForPlayerModalSeason(tvId, seasonNumber) {
             modalEpisodeSelect.disabled = true; modalEpisodeSelect.innerHTML = '<option>Loading...</option>';
-            nextEpisodeButton.disabled = true; const cacheKey = `${tvId}-${seasonNumber}-player`; 
+            nextEpisodeButton.disabled = true; const cacheKey = `${tvId}-${seasonNumber}-player`;
             try {
                 let seasonDetails;
                 if (seasonDetailsCache[cacheKey]) seasonDetails = seasonDetailsCache[cacheKey];
@@ -774,19 +777,23 @@
             const isLastSeason = currentTvShow.season === currentTvShow.totalSeasons;
             nextEpisodeButton.disabled = isLastEpisodeInSeason && isLastSeason;
         }
-        
+
         function playMovie(id, title) {
-            modalTvControls.classList.add('hidden'); 
-            const embedURL = `${ANYEMBED_BASE_URL}/movie/${id}?server=${DEFAULT_SERVER}`;
-            playerModalTitle.textContent = title || 'Movie'; loadPlayer(embedURL);
+            modalTvControls.classList.add('hidden');
+            // Added autoplay=1 parameter
+            const embedURL = `${ANYEMBED_BASE_URL}/movie/${id}?server=${DEFAULT_SERVER}&autoplay=1`;
+            playerModalTitle.textContent = title || 'Movie';
+            loadPlayer(embedURL);
         }
 
         function playTvShow() {
             if (!currentTvShow.id) return;
-            modalTvControls.classList.remove('hidden'); 
-            const embedURL = `${ANYEMBED_BASE_URL}/tv/${currentTvShow.id}/${currentTvShow.season}/${currentTvShow.episode}?server=${DEFAULT_SERVER}`;
+            modalTvControls.classList.remove('hidden');
+            // Added autoplay=1 parameter
+            const embedURL = `${ANYEMBED_BASE_URL}/tv/${currentTvShow.id}/${currentTvShow.season}/${currentTvShow.episode}?server=${DEFAULT_SERVER}&autoplay=1`;
             playerModalTitle.textContent = `${currentTvShow.name || 'TV Show'} (S${currentTvShow.season} E${currentTvShow.episode})`;
-            loadPlayer(embedURL); updateNextEpisodeButtonState(); 
+            loadPlayer(embedURL);
+            updateNextEpisodeButtonState();
         }
 
         function openModal(modalElement) {
@@ -802,8 +809,8 @@
 
         function closeModal(modalElement) {
             modalElement.style.display = "none";
-            if (modalElement === playerModal) playerContainer.innerHTML = ""; 
-            
+            if (modalElement === playerModal) playerContainer.innerHTML = "";
+
             if (infoModal.style.display === 'none' && playerModal.style.display === 'none') {
                  if (isAnyModalOpenForScrollLock) {
                     document.documentElement.style.overflow = originalHtmlOverflow;
@@ -811,61 +818,57 @@
                     isAnyModalOpenForScrollLock = false;
                  }
             }
-            
-            if (modalElement === playerModal) modalTvControls.classList.add('hidden'); 
+
+            if (modalElement === playerModal) modalTvControls.classList.add('hidden');
         }
 
         function loadPlayer(url) {
-            playerContainer.innerHTML = ''; // Clear previous player first
+            playerContainer.innerHTML = ''; // Clear previous player
 
             const iframe = document.createElement('iframe');
             iframe.src = url;
-            
-            // Sandbox attributes:
-            // "allow-scripts": Essential for the player to run.
-            // "allow-same-origin": Allows the iframe to access its own origin's resources (cookies, storage), often needed for player settings or state.
-            // "allow-forms": If the player uses forms (e.g., search within player, login).
-            // "allow-fullscreen": To allow the player's own fullscreen button to work.
-            // "allow-autoplay": To allow autoplay functionality as intended.
-            // "allow-modals": Allows alert(), confirm(), prompt(). Might be needed by some players for legitimate dialogs (not pop-up ads).
-            // OMITTED for ad-blocking: "allow-popups", "allow-popups-to-escape-sandbox".
-            // OMITTED as less likely essential for basic controls and to simplify: "allow-pointer-lock", "allow-presentation".
-            iframe.setAttribute('sandbox', 'allow-forms allow-scripts allow-same-origin allow-fullscreen allow-autoplay allow-modals');
-            
-            iframe.setAttribute('allow', 'fullscreen; autoplay');
-            iframe.setAttribute('allowfullscreen', ''); 
-            iframe.style.border = '0'; // Ensure no default border from browser
+
+            iframe.setAttribute('sandbox',
+                'allow-scripts allow-same-origin allow-forms allow-modals allow-fullscreen allow-autoplay allow-presentation');
+
+            iframe.setAttribute('allow', 'fullscreen; autoplay; encrypted-media; picture-in-picture');
+            iframe.setAttribute('allowfullscreen', '');
+            iframe.style.border = '0';
+            // iframe.style.display = 'block'; // This is handled by .iframe-container iframe CSS
 
             playerContainer.appendChild(iframe);
-            openModal(playerModal);
 
-            setTimeout(() => {
-                // Ensure iframe is still part of the document and contentWindow is accessible (might not be immediately)
-                if (playerContainer.contains(iframe) && iframe.contentWindow) { 
+            iframe.onload = function() {
+                if (playerContainer.contains(iframe) && iframe.contentWindow) {
                     try {
                         iframe.focus();
-                        // console.log('iframe focused. Active element:', document.activeElement); // For debugging
                     } catch (e) {
-                        // console.error('Error focusing iframe:', e); // Catch potential cross-origin focus errors
+                        // console.error('Error focusing iframe on load:', e);
                     }
                 }
-            }, 200); // 200ms delay, adjust if needed, gives iframe time to initialize
+            };
+
+            iframe.onerror = function() {
+                playerContainer.innerHTML = '<p style="color:red; text-align:center; padding:20px;">Player failed to load. Please try again.</p>';
+            };
+            
+            openModal(playerModal);
         }
 
         closeInfoModalButton.addEventListener('click', () => closeModal(infoModal));
         closePlayerModalButton.addEventListener('click', () => closeModal(playerModal));
 
-        window.addEventListener('click', (event) => { 
-            if (event.target === playerModal) closeModal(playerModal); 
+        window.addEventListener('click', (event) => {
+            if (event.target === playerModal) closeModal(playerModal);
             if (event.target === infoModal) closeModal(infoModal);
         });
-        window.addEventListener('keydown', (event) => { 
+        window.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
                 if (playerModal.style.display === 'block') closeModal(playerModal);
                 else if (infoModal.style.display === 'block') closeModal(infoModal);
             }
         });
-        
+
         function setSearchFilter(filterType, filterButtonContainer) {
             currentSearchFilter = filterType;
             filterButtonContainer.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -876,23 +879,23 @@
             container.addEventListener('click', (e) => {
                 if (e.target.classList.contains('filter-btn')) {
                     const filterType = e.target.dataset.filter;
-                    setSearchFilter(filterType, desktopSearchFilters); 
+                    setSearchFilter(filterType, desktopSearchFilters);
                     setSearchFilter(filterType, mobileSearchFilters);
                     const query = desktopSearchInput.value.trim() || mobileSearchInput.value.trim();
-                    if (searchResultsGridContainer.classList.contains('hidden') === false && query) { 
+                    if (searchResultsGridContainer.classList.contains('hidden') === false && query) {
                         executeSearch(query);
                     }
                 }
             });
         });
-        
+
         desktopSearchButton.addEventListener('click', () => { executeSearch(desktopSearchInput.value.trim()); });
         desktopSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') executeSearch(desktopSearchInput.value.trim()); });
-        mobileSearchButton.addEventListener('click', () => { 
+        mobileSearchButton.addEventListener('click', () => {
             const query = mobileSearchInput.value.trim();
             if (query) { executeSearch(query); mobileMenu.classList.add('hidden');}
         });
-        mobileSearchInput.addEventListener('keypress', (e) => { 
+        mobileSearchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const query = mobileSearchInput.value.trim();
                 if (query) { executeSearch(query); mobileMenu.classList.add('hidden'); }
@@ -901,28 +904,24 @@
         sortResultsSelect.addEventListener('change', sortAndDisplayResults);
 
         modalSeasonSelect.addEventListener('change', async () => {
-            currentTvShow.season = parseInt(modalSeasonSelect.value); currentTvShow.episode = 1; 
-            await fetchEpisodesForPlayerModalSeason(currentTvShow.id, currentTvShow.season); 
-            // playTvShow will be called by modalEpisodeSelect change if episodes load, or directly if needed after fetch.
-            // For now, assume fetch will lead to episode selection and then play.
-            // If fetchEpisodesForPlayerModalSeason successfully sets an episode and triggers play, this is fine.
-            // Otherwise, explicitly call playTvShow() here after episodes are populated if needed.
+            currentTvShow.season = parseInt(modalSeasonSelect.value); currentTvShow.episode = 1;
+            await fetchEpisodesForPlayerModalSeason(currentTvShow.id, currentTvShow.season);
             if(modalEpisodeSelect.options.length > 0 && modalEpisodeSelect.value) {
-                 playTvShow(); // Play if episode is selected
+                 playTvShow();
             }
         });
-        modalEpisodeSelect.addEventListener('change', () => { 
-            currentTvShow.episode = parseInt(modalEpisodeSelect.value); playTvShow(); 
+        modalEpisodeSelect.addEventListener('change', () => {
+            currentTvShow.episode = parseInt(modalEpisodeSelect.value); playTvShow();
         });
         nextEpisodeButton.addEventListener('click', async () => {
             if (!currentTvShow.id || nextEpisodeButton.disabled) return;
             const currentEpisodeIndex = currentTvShow.episodesInCurrentSeason.findIndex(ep => ep.episode_number === currentTvShow.episode);
             if (currentEpisodeIndex < currentTvShow.episodesInCurrentSeason.length - 1) {
                 currentTvShow.episode = currentTvShow.episodesInCurrentSeason[currentEpisodeIndex + 1].episode_number;
-                modalEpisodeSelect.value = currentTvShow.episode; // This will trigger its change event and playTvShow
+                modalEpisodeSelect.value = currentTvShow.episode;
             } else if (currentTvShow.season < currentTvShow.totalSeasons) {
-                currentTvShow.season++; currentTvShow.episode = 1; 
-                modalSeasonSelect.value = currentTvShow.season; // This will trigger its change event
+                currentTvShow.season++; currentTvShow.episode = 1;
+                modalSeasonSelect.value = currentTvShow.season;
             }
         });
 
@@ -930,7 +929,7 @@
             moviesScrollWrapper = document.getElementById('moviesScrollWrapper');
             tvScrollWrapper = document.getElementById('tvScrollWrapper');
             document.querySelectorAll('.scroll-button').forEach(button => {
-                button.removeEventListener('click', handleScrollButtonClick); 
+                button.removeEventListener('click', handleScrollButtonClick);
                 button.addEventListener('click', handleScrollButtonClick);
             });
              if(moviesScrollWrapper) {
@@ -941,18 +940,18 @@
              if(tvScrollWrapper) {
                 tvScrollWrapper.removeEventListener('scroll', updateTvScrollButtons);
                 tvScrollWrapper.addEventListener('scroll', updateTvScrollButtons, { passive: true });
-                updateScrollButtons(tvScrollWrapper); 
+                updateScrollButtons(tvScrollWrapper);
              }
         }
         function updateMoviesScrollButtons() { if (moviesScrollWrapper) updateScrollButtons(moviesScrollWrapper); }
         function updateTvScrollButtons() { if (tvScrollWrapper) updateScrollButtons(tvScrollWrapper); }
-        
+
         homeLink.addEventListener('click', (e) => {
             e.preventDefault();
             desktopSearchInput.value = ''; mobileSearchInput.value = '';
-            loadTopRatedContent(); 
+            loadTopRatedContent();
         });
-        
+
         mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
         navDiscoverMobile.addEventListener('click', (e) => { e.preventDefault(); mobileMenu.classList.add('hidden'); homeLink.click(); });
         navFavoritesMobile.addEventListener('click', (e) => { e.preventDefault(); mobileMenu.classList.add('hidden'); loadFavorites(); });
@@ -963,7 +962,7 @@
         function handleScrollButtonClick(event) {
             const button = event.currentTarget; const targetId = button.dataset.target;
             const scrollWrapper = document.getElementById(targetId); if (!scrollWrapper) return;
-            const scrollAmount = scrollWrapper.clientWidth * 0.8; 
+            const scrollAmount = scrollWrapper.clientWidth * 0.8;
             if (button.classList.contains('next')) scrollWrapper.scrollLeft += scrollAmount;
             else if (button.classList.contains('prev')) scrollWrapper.scrollLeft -= scrollAmount;
         }
@@ -972,11 +971,11 @@
             const prevButton = scrollWrapper.parentElement.querySelector('.scroll-button.prev');
             const nextButton = scrollWrapper.parentElement.querySelector('.scroll-button.next');
             if(!prevButton || !nextButton) return;
-            const isScrollable = scrollWrapper.scrollWidth > scrollWrapper.clientWidth + 1; // Added +1 for small fractional diffs
+            const isScrollable = scrollWrapper.scrollWidth > scrollWrapper.clientWidth + 1;
             if (!isScrollable) { prevButton.style.display = 'none'; nextButton.style.display = 'none'; return; }
             prevButton.style.display = 'block'; nextButton.style.display = 'block';
             prevButton.disabled = scrollWrapper.scrollLeft <= 0;
-            nextButton.disabled = scrollWrapper.scrollLeft + scrollWrapper.clientWidth >= scrollWrapper.scrollWidth - 5; 
+            nextButton.disabled = scrollWrapper.scrollLeft + scrollWrapper.clientWidth >= scrollWrapper.scrollWidth - 5;
         }
 
         function getFavorites() {
@@ -984,7 +983,7 @@
         }
         function saveFavorites(favorites) {
             localStorage.setItem('skyeMovieFavorites', JSON.stringify(favorites));
-            updateAllFavoriteIcons(); 
+            updateAllFavoriteIcons();
         }
         function isFavorite(id, type) {
             const favorites = getFavorites();
@@ -1003,7 +1002,7 @@
             favorites = favorites.filter(fav => !(fav.id === parseInt(id) && fav.type === type));
             saveFavorites(favorites);
         }
-        function toggleFavorite(itemData, iconContainerElement) { 
+        function toggleFavorite(itemData, iconContainerElement) {
             const titleToStore = itemData.title || itemData.name || "Untitled";
             const favObject = {
                 id: parseInt(itemData.id),
@@ -1017,7 +1016,7 @@
             if (isFavorite(favObject.id, favObject.type)) {
                 removeFromFavorites(favObject.id, favObject.type);
                 if(iconElement) {
-                    iconElement.classList.remove('fas'); 
+                    iconElement.classList.remove('fas');
                     iconElement.classList.add('far');
                 }
                 if(iconContainerElement) iconContainerElement.classList.remove('is-favorite');
@@ -1030,12 +1029,12 @@
                 }
                  if(iconContainerElement) iconContainerElement.classList.add('is-favorite');
             }
-            updateInfoModalFavoriteButton(favObject.id, favObject.type); 
+            updateInfoModalFavoriteButton(favObject.id, favObject.type);
             if (!favoritesGridContainer.classList.contains('hidden')) {
                 loadFavorites();
             }
         }
-        
+
         infoModalFavoriteButton.addEventListener('click', () => {
             if (currentInfoModalData) {
                 const favData = {
@@ -1044,7 +1043,7 @@
                     title: currentInfoModalData.title || currentInfoModalData.name,
                     poster_path: currentInfoModalData.poster_path
                 };
-                toggleFavorite(favData); 
+                toggleFavorite(favData);
             }
         });
 
@@ -1052,14 +1051,14 @@
             if (infoModal.style.display === 'block' && currentInfoModalData && parseInt(currentInfoModalData.id) === parseInt(id) && currentInfoModalData.type === type) {
                 if (isFavorite(id, type)) {
                     infoModalFavoriteButton.innerHTML = '<i class="fas fa-heart mr-2"></i>Remove from Favorites';
-                    infoModalFavoriteButton.classList.add('is-favorite'); 
+                    infoModalFavoriteButton.classList.add('is-favorite');
                 } else {
                     infoModalFavoriteButton.innerHTML = '<i class="far fa-heart mr-2"></i>Add to Favorites';
                     infoModalFavoriteButton.classList.remove('is-favorite');
                 }
             }
         }
-        
+
         function updateAllFavoriteIcons() {
             document.querySelectorAll('.favorite-icon').forEach(iconContainerEl => {
                 const id = parseInt(iconContainerEl.dataset.id);
@@ -1098,14 +1097,14 @@
             favorites.forEach(fav => {
                 favoritesGrid.appendChild(createContentCard(fav, fav.type));
             });
-            updateAllFavoriteIcons(); 
+            updateAllFavoriteIcons();
         }
 
 
         document.getElementById('currentYear').textContent = new Date().getFullYear();
-        reinitializeScrollableContent(); 
+        reinitializeScrollableContent();
         loadTopRatedContent();
-        updateAllFavoriteIcons(); 
+        updateAllFavoriteIcons();
 
     </script>
 </body>
