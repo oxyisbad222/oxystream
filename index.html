@@ -417,6 +417,7 @@
         let originalBodyOverflow = '';
         let originalHtmlOverflow = ''; 
         let currentInfoModalData = null;
+        let isAnyModalOpenForScrollLock = false;
 
 
         function showStatus(message, type = 'info') {
@@ -791,11 +792,13 @@
         }
 
         function openModal(modalElement) {
-            originalBodyOverflow = document.body.style.overflow;
-            originalHtmlOverflow = document.documentElement.style.overflow;
-
-            document.documentElement.style.overflow = 'hidden';
-            document.body.style.overflow = 'hidden';
+            if (!isAnyModalOpenForScrollLock) {
+                originalBodyOverflow = document.body.style.overflow;
+                originalHtmlOverflow = document.documentElement.style.overflow;
+                document.documentElement.style.overflow = 'hidden';
+                document.body.style.overflow = 'hidden';
+                isAnyModalOpenForScrollLock = true;
+            }
             modalElement.style.display = "block";
         }
 
@@ -804,8 +807,11 @@
             if (modalElement === playerModal) playerContainer.innerHTML = ""; 
             
             if (infoModal.style.display === 'none' && playerModal.style.display === 'none') {
-                 document.documentElement.style.overflow = originalHtmlOverflow;
-                 document.body.style.overflow = originalBodyOverflow; 
+                 if (isAnyModalOpenForScrollLock) {
+                    document.documentElement.style.overflow = originalHtmlOverflow;
+                    document.body.style.overflow = originalBodyOverflow;
+                    isAnyModalOpenForScrollLock = false;
+                 }
             }
             
             if (modalElement === playerModal) modalTvControls.classList.add('hidden'); 
@@ -813,7 +819,7 @@
 
 
         function loadPlayer(url) {
-            // Removed sandbox attribute for testing player interaction
+            // Removed sandbox attribute to give iframe maximum permissions for interaction
             playerContainer.innerHTML = `<iframe src="${url}" allow="fullscreen; autoplay" allowfullscreen></iframe>`;
             openModal(playerModal);
         }
