@@ -221,7 +221,7 @@
             <div class="relative w-full">
                  <input type="text" id="mobileSearchInput" class="input-field w-full pr-10" placeholder="Search...">
                  <button id="mobileSearchButton" class="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-e50914">
-                     <i class="fas fa-search"></i>
+                    <i class="fas fa-search"></i>
                  </button>
             </div>
             <div id="mobileSearchFilters" class="flex justify-center space-x-2">
@@ -819,8 +819,15 @@
 
 
         function loadPlayer(url) {
-            // Removed sandbox attribute to give iframe maximum permissions for interaction
-            playerContainer.innerHTML = `<iframe src="${url}" allow="fullscreen; autoplay" allowfullscreen></iframe>`;
+            // Added sandbox attribute to enhance security and attempt to block pop-ups/new tabs
+            // while aiming to keep player functionality.
+            // Omitting 'allow-popups' and 'allow-popups-to-escape-sandbox'.
+            // If the player *requires* popups for core functions, this might restrict it.
+            // The 'allow' attribute complements 'sandbox' for features like fullscreen and autoplay.
+            playerContainer.innerHTML = `<iframe src="${url}" 
+                sandbox="allow-forms allow-scripts allow-same-origin allow-pointer-lock allow-presentation allow-fullscreen allow-autoplay" 
+                allow="fullscreen; autoplay" 
+                allowfullscreen></iframe>`;
             openModal(playerModal);
         }
 
@@ -886,6 +893,7 @@
             } else if (currentTvShow.season < currentTvShow.totalSeasons) {
                 currentTvShow.season++; currentTvShow.episode = 1; 
                 modalSeasonSelect.value = currentTvShow.season; 
+                // This will trigger its own change listener which calls fetchEpisodes and playTvShow
             }
         });
 
