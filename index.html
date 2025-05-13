@@ -16,8 +16,6 @@
             background-color: #141414;
             color: #e5e5e5;
         }
-        /* body.modal-open class is no longer used for position:fixed scroll lock */
-        /* Overflow will be handled directly on html and body elements via JS */
 
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #232323; }
@@ -88,7 +86,7 @@
         }
         .close-button { 
             color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1;
-            position: absolute; top: 8px; right: 10px; z-index: 1001; 
+            position: absolute; top: 8px; right: 10px; z-index: 1020; /* Ensure close button is above iframe content if any overlap */
             width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
         }
         .close-button:hover, .close-button:focus { color: #e50914; text-decoration: none; }
@@ -817,18 +815,41 @@
             if (modalElement === playerModal) modalTvControls.classList.add('hidden'); 
         }
 
-
         function loadPlayer(url) {
-            // Added sandbox attribute to enhance security and attempt to block pop-ups/new tabs
-            // while aiming to keep player functionality.
-            // Omitting 'allow-popups' and 'allow-popups-to-escape-sandbox'.
-            // If the player *requires* popups for core functions, this might restrict it.
-            // The 'allow' attribute complements 'sandbox' for features like fullscreen and autoplay.
-            playerContainer.innerHTML = `<iframe src="${url}" 
-                sandbox="allow-forms allow-scripts allow-same-origin allow-pointer-lock allow-presentation allow-fullscreen allow-autoplay" 
-                allow="fullscreen; autoplay" 
-                allowfullscreen></iframe>`;
+            playerContainer.innerHTML = ''; // Clear previous player first
+
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            
+            // Sandbox attributes:
+            // "allow-scripts": Essential for the player to run.
+            // "allow-same-origin": Allows the iframe to access its own origin's resources (cookies, storage), often needed for player settings or state.
+            // "allow-forms": If the player uses forms (e.g., search within player, login).
+            // "allow-fullscreen": To allow the player's own fullscreen button to work.
+            // "allow-autoplay": To allow autoplay functionality as intended.
+            // "allow-modals": Allows alert(), confirm(), prompt(). Might be needed by some players for legitimate dialogs (not pop-up ads).
+            // OMITTED for ad-blocking: "allow-popups", "allow-popups-to-escape-sandbox".
+            // OMITTED as less likely essential for basic controls and to simplify: "allow-pointer-lock", "allow-presentation".
+            iframe.setAttribute('sandbox', 'allow-forms allow-scripts allow-same-origin allow-fullscreen allow-autoplay allow-modals');
+            
+            iframe.setAttribute('allow', 'fullscreen; autoplay');
+            iframe.setAttribute('allowfullscreen', ''); 
+            iframe.style.border = '0'; // Ensure no default border from browser
+
+            playerContainer.appendChild(iframe);
             openModal(playerModal);
+
+            setTimeout(() => {
+                // Ensure iframe is still part of the document and contentWindow is accessible (might not be immediately)
+                if (playerContainer.contains(iframe) && iframe.contentWindow) { 
+                    try {
+                        iframe.focus();
+                        // console.log('iframe focused. Active element:', document.activeElement); // For debugging
+                    } catch (e) {
+                        // console.error('Error focusing iframe:', e); // Catch potential cross-origin focus errors
+                    }
+                }
+            }, 200); // 200ms delay, adjust if needed, gives iframe time to initialize
         }
 
         closeInfoModalButton.addEventListener('click', () => closeModal(infoModal));
@@ -881,19 +902,27 @@
 
         modalSeasonSelect.addEventListener('change', async () => {
             currentTvShow.season = parseInt(modalSeasonSelect.value); currentTvShow.episode = 1; 
-            await fetchEpisodesForPlayerModalSeason(currentTvShow.id, currentTvShow.season); playTvShow();
+            await fetchEpisodesForPlayerModalSeason(currentTvShow.id, currentTvShow.season); 
+            // playTvShow will be called by modalEpisodeSelect change if episodes load, or directly if needed after fetch.
+            // For now, assume fetch will lead to episode selection and then play.
+            // If fetchEpisodesForPlayerModalSeason successfully sets an episode and triggers play, this is fine.
+            // Otherwise, explicitly call playTvShow() here after episodes are populated if needed.
+            if(modalEpisodeSelect.options.length > 0 && modalEpisodeSelect.value) {
+                 playTvShow(); // Play if episode is selected
+            }
         });
-        modalEpisodeSelect.addEventListener('change', () => { currentTvShow.episode = parseInt(modalEpisodeSelect.value); playTvShow(); });
+        modalEpisodeSelect.addEventListener('change', () => { 
+            currentTvShow.episode = parseInt(modalEpisodeSelect.value); playTvShow(); 
+        });
         nextEpisodeButton.addEventListener('click', async () => {
             if (!currentTvShow.id || nextEpisodeButton.disabled) return;
             const currentEpisodeIndex = currentTvShow.episodesInCurrentSeason.findIndex(ep => ep.episode_number === currentTvShow.episode);
             if (currentEpisodeIndex < currentTvShow.episodesInCurrentSeason.length - 1) {
                 currentTvShow.episode = currentTvShow.episodesInCurrentSeason[currentEpisodeIndex + 1].episode_number;
-                modalEpisodeSelect.value = currentTvShow.episode; playTvShow();
+                modalEpisodeSelect.value = currentTvShow.episode; // This will trigger its change event and playTvShow
             } else if (currentTvShow.season < currentTvShow.totalSeasons) {
                 currentTvShow.season++; currentTvShow.episode = 1; 
-                modalSeasonSelect.value = currentTvShow.season; 
-                // This will trigger its own change listener which calls fetchEpisodes and playTvShow
+                modalSeasonSelect.value = currentTvShow.season; // This will trigger its change event
             }
         });
 
@@ -915,8 +944,8 @@
                 updateScrollButtons(tvScrollWrapper); 
              }
         }
-        function updateMoviesScrollButtons() { updateScrollButtons(moviesScrollWrapper); }
-        function updateTvScrollButtons() { updateScrollButtons(tvScrollWrapper); }
+        function updateMoviesScrollButtons() { if (moviesScrollWrapper) updateScrollButtons(moviesScrollWrapper); }
+        function updateTvScrollButtons() { if (tvScrollWrapper) updateScrollButtons(tvScrollWrapper); }
         
         homeLink.addEventListener('click', (e) => {
             e.preventDefault();
@@ -943,7 +972,7 @@
             const prevButton = scrollWrapper.parentElement.querySelector('.scroll-button.prev');
             const nextButton = scrollWrapper.parentElement.querySelector('.scroll-button.next');
             if(!prevButton || !nextButton) return;
-            const isScrollable = scrollWrapper.scrollWidth > scrollWrapper.clientWidth;
+            const isScrollable = scrollWrapper.scrollWidth > scrollWrapper.clientWidth + 1; // Added +1 for small fractional diffs
             if (!isScrollable) { prevButton.style.display = 'none'; nextButton.style.display = 'none'; return; }
             prevButton.style.display = 'block'; nextButton.style.display = 'block';
             prevButton.disabled = scrollWrapper.scrollLeft <= 0;
