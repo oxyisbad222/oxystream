@@ -415,7 +415,7 @@
         let currentSearchResults = [];
         let currentSearchQuery = '';
         let originalBodyOverflow = '';
-        let originalHtmlOverflow = ''; // Store html overflow as well
+        let originalHtmlOverflow = ''; 
         let currentInfoModalData = null;
 
 
@@ -720,7 +720,7 @@
                     updateAndShowTVControlsInPlayerModal(); 
                     playTvShow();
                 }
-            }, 50); // Reduced delay slightly, can be adjusted
+            }, 50); 
         });
         
         async function updateAndShowTVControlsInPlayerModal() { 
@@ -813,8 +813,8 @@
 
 
         function loadPlayer(url) {
-            const sandboxPermissions = ["allow-scripts", "allow-same-origin", "allow-forms", "allow-presentation", "allow-fullscreen"].join(" ");
-            playerContainer.innerHTML = `<iframe src="${url}" sandbox="${sandboxPermissions}" allow="fullscreen; autoplay" allowfullscreen></iframe>`;
+            // Removed sandbox attribute for testing player interaction
+            playerContainer.innerHTML = `<iframe src="${url}" allow="fullscreen; autoplay" allowfullscreen></iframe>`;
             openModal(playerModal);
         }
 
