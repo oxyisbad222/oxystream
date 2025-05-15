@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bungee+Inline&display=swap" rel="stylesheet">
     <style>
         html, body {
             overscroll-behavior-y: contain; 
@@ -15,6 +16,9 @@
             font-family: 'Inter', sans-serif;
             background-color: #141414;
             color: #e5e5e5;
+        }
+        .title-font {
+            font-family: 'Bungee Inline', cursive;
         }
 
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -63,12 +67,16 @@
         .iframe-container { 
             position: relative; overflow: hidden; width: 100%; 
             padding-top: 56.25%; background-color: #000; flex-grow: 1; 
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            cursor: pointer;
         }
         .iframe-container iframe { 
             position: absolute; top: 0; left: 0; bottom: 0; right: 0; 
             width: 100%; height: 100%; 
             border: none; 
             pointer-events: auto; 
+            display: block;
         }
         
         .modal { display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); }
@@ -86,7 +94,7 @@
         }
         .close-button { 
             color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1;
-            position: absolute; top: 8px; right: 10px; z-index: 1020; /* Ensure close button is above iframe content if any overlap */
+            position: absolute; top: 8px; right: 10px; z-index: 1020; 
             width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
         }
         .close-button:hover, .close-button:focus { color: #e50914; text-decoration: none; }
@@ -95,6 +103,7 @@
             border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%;
             border-top: 4px solid #e50914; width: 24px; height: 24px;
             animation: spin 1s linear infinite;
+            margin: 20px auto;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -102,6 +111,7 @@
         .scroll-wrapper {
             display: flex; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 1rem; 
             -ms-overflow-style: none; scrollbar-width: none;  
+            min-height: 300px;
         }
         .scroll-wrapper::-webkit-scrollbar { display: none; }
         .scroll-button {
@@ -117,18 +127,19 @@
         .scroll-button:disabled { opacity:0.3; cursor: not-allowed;}
 
         #modalTvControls, #infoModalTvControls { background-color: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; margin-top: 10px; }
-        .btn-action, .btn-next-episode { 
+        .btn-action, .btn-next-episode, .btn-show-more { 
             background-color: #e50914; color: white; font-weight: bold;
             padding: 0.6rem 1.2rem; border-radius: 0.25rem;
             transition: background-color 0.2s ease-in-out; cursor: pointer; border: none;
             display: inline-flex; align-items: center; justify-content: center;
         }
-        .btn-action:hover, .btn-next-episode:hover { background-color: #f40612; }
-        .btn-action:disabled, .btn-next-episode:disabled { background-color: #555; cursor: not-allowed; }
+        .btn-action:hover, .btn-next-episode:hover, .btn-show-more:hover { background-color: #f40612; }
+        .btn-action:disabled, .btn-next-episode:disabled, .btn-show-more:disabled { background-color: #555; cursor: not-allowed; }
+        .btn-show-more { background-color: #333; margin-top: 0.5rem; }
+        .btn-show-more:hover { background-color: #444; }
         
         #searchResultsGrid, #favoritesGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
         #searchResultsGrid .card, #favoritesGrid .card { width: 100%; }
-
 
         .filter-btn {
             padding: 0.4rem 0.8rem; border-radius: 0.25rem; border: 1px solid #555;
@@ -145,12 +156,10 @@
         }
         .nav-link:hover, .nav-link.active { background-color: rgba(229, 9, 20, 0.2); }
 
-
         #infoModalContent .info-poster { width: 120px; height: 180px; object-fit: cover; border-radius: 0.25rem; flex-shrink: 0;}
         @media (min-width: 640px) { 
             #infoModalContent .info-poster { width: 150px; height: 225px; }
         }
-
 
         @media (max-width: 768px) {
             .modal-content {
@@ -190,9 +199,9 @@
     <header class="bg-black bg-opacity-90 shadow-lg sticky top-0 z-50 backdrop-blur-md">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
-                <a href="#" id="homeLink" class="text-3xl font-bold netflix-red-text">SkyeMovie</a>
+                <a href="#" id="homeLink" class="text-3xl font-bold netflix-red-text title-font">SkyeMovie</a>
                 <nav class="hidden md:flex items-center space-x-2">
-                    <a href="#" id="navDiscoverDesktop" class="nav-link active">Top Rated</a>
+                    <a href="#" id="navDiscoverDesktop" class="nav-link active">Discover</a>
                     <a href="#" id="navFavoritesDesktop" class="nav-link">My Favorites</a>
                     <div class="flex-grow items-center max-w-lg ml-4">
                         <div class="relative w-full">
@@ -227,7 +236,7 @@
                 <button class="filter-btn" data-filter="movie">Movies</button>
                 <button class="filter-btn" data-filter="tv">TV</button>
             </div>
-            <a href="#" id="navDiscoverMobile" class="block text-center py-2 hover:bg-gray-700 rounded-md">Discover Top Rated</a>
+            <a href="#" id="navDiscoverMobile" class="block text-center py-2 hover:bg-gray-700 rounded-md">Discover</a>
             <a href="#" id="navFavoritesMobile" class="block text-center py-2 hover:bg-gray-700 rounded-md">My Favorites</a>
             <a href="https://skyebeta.vercel.app/" target="_blank" rel="noopener noreferrer" class="block text-center py-2 hover:bg-gray-700 rounded-md">iOS App (Beta)</a>
         </div>
@@ -239,41 +248,51 @@
     
     <main class="container mx-auto p-4 sm:p-6 lg:p-8" id="mainContent">
         <div id="statusMessage" class="text-center my-4 h-6"></div>
-        <section id="discoverSection"> 
-            <h2 id="contentAreaTitle" class="text-3xl font-bold mb-6 border-l-4 border-red-600 pl-3">Top Rated</h2>
+        
+        <section id="discoverSection" class="mb-12"> 
+            <h2 id="contentAreaTitle" class="text-3xl font-bold mb-6 border-l-4 border-red-600 pl-3">Discover</h2>
             
-            <div id="moviesContainer" class="mb-10">
-                <h3 class="text-2xl font-semibold mb-4">Movies</h3>
+            <div id="tmdbMoviesContainer" class="mb-10 category-container">
+                <h3 class="text-2xl font-semibold mb-4">Top Rated Movies</h3>
                 <div class="horizontal-scroll-container">
-                    <button class="scroll-button prev" data-target="moviesScrollWrapper"><i class="fas fa-chevron-left"></i></button>
-                    <div id="moviesScrollWrapper" class="scroll-wrapper flex space-x-4"></div>
-                    <button class="scroll-button next" data-target="moviesScrollWrapper"><i class="fas fa-chevron-right"></i></button>
+                    <button class="scroll-button prev" data-target="tmdbMoviesScrollWrapper"><i class="fas fa-chevron-left"></i></button>
+                    <div id="tmdbMoviesScrollWrapper" class="scroll-wrapper flex space-x-4"></div>
+                    <button class="scroll-button next" data-target="tmdbMoviesScrollWrapper"><i class="fas fa-chevron-right"></i></button>
                 </div>
             </div>
 
-            <div id="tvShowsContainer">
-                <h3 class="text-2xl font-semibold mb-4">TV Shows</h3>
+            <div id="tmdbTvShowsContainer" class="mb-10 category-container">
+                <h3 class="text-2xl font-semibold mb-4">Top Rated TV Shows</h3>
                  <div class="horizontal-scroll-container">
-                    <button class="scroll-button prev" data-target="tvScrollWrapper"><i class="fas fa-chevron-left"></i></button>
-                    <div id="tvScrollWrapper" class="scroll-wrapper flex space-x-4"></div>
-                    <button class="scroll-button next" data-target="tvScrollWrapper"><i class="fas fa-chevron-right"></i></button>
+                    <button class="scroll-button prev" data-target="tmdbTvScrollWrapper"><i class="fas fa-chevron-left"></i></button>
+                    <div id="tmdbTvScrollWrapper" class="scroll-wrapper flex space-x-4"></div>
+                    <button class="scroll-button next" data-target="tmdbTvScrollWrapper"><i class="fas fa-chevron-right"></i></button>
                 </div>
             </div>
-            <div id="searchResultsGridContainer" class="hidden mt-8">
-                <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
-                    <h2 id="searchResultsTitle" class="text-2xl font-semibold">Search Results</h2>
-                    <select id="sortResultsSelect" class="select-field w-full sm:w-auto text-sm py-1.5">
-                        <option value="popularity.desc">Sort by Popularity</option>
-                        <option value="date.desc">Date (New to Old)</option>
-                        <option value="date.asc">Date (Old to New)</option>
-                    </select>
-                </div>
-                <div id="searchResultsGrid"></div>
+        </section>
+
+        <section id="watchmodeCategoriesSection" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 border-l-4 border-red-600 pl-3">Browse by Service</h2>
+            <div id="watchmodeCategoriesGrid" class="space-y-10">
             </div>
-            <div id="favoritesGridContainer" class="hidden mt-8">
-                 <h2 id="favoritesTitle" class="text-3xl font-bold mb-6 border-l-4 border-red-600 pl-3">My Favorites</h2>
-                <div id="favoritesGrid"></div>
+        </section>
+
+
+        <section id="searchResultsSection" class="hidden mt-8">
+             <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
+                <h2 id="searchResultsTitle" class="text-2xl font-semibold">Search Results</h2>
+                <select id="sortResultsSelect" class="select-field w-full sm:w-auto text-sm py-1.5">
+                    <option value="popularity.desc">Sort by Popularity</option>
+                    <option value="date.desc">Date (New to Old)</option>
+                    <option value="date.asc">Date (Old to New)</option>
+                </select>
             </div>
+            <div id="searchResultsGrid"></div>
+        </section>
+
+        <section id="favoritesSection" class="hidden mt-8">
+             <h2 id="favoritesTitle" class="text-3xl font-bold mb-6 border-l-4 border-red-600 pl-3">My Favorites</h2>
+            <div id="favoritesGrid"></div>
         </section>
     </main>
 
@@ -333,7 +352,7 @@
                     <button id="nextEpisodeButton" class="btn-next-episode text-sm sm:col-start-3">Next Episode <i class="fas fa-step-forward ml-1"></i></button>
                 </div>
             </div>
-            <p class="text-xs text-gray-400 mt-3">Using Server 4. We strive to keep advertising minimal to support the service and ensure a great viewing experience.</p>
+            <p class="text-xs text-gray-400 mt-3">Player provided by multiembed.mov. We strive to keep advertising minimal.</p>
         </div>
     </div>
 
@@ -347,8 +366,19 @@
 
     <script>
         const TMDB_IMG_BASE_URL = 'https://image.tmdb.org/t/p/w500';
-        const ANYEMBED_BASE_URL = "https://player.autoembed.cc/embed";
-        const DEFAULT_SERVER = 4;
+        const PLAYER_PROXY_URL = '/api/player-proxy'; 
+        const WATCHMODE_PROXY_URL = '/api/watchmode-proxy';
+        const WATCHMODE_ITEMS_PER_PAGE = 20;
+        const WATCHMODE_ITEMS_TO_LOAD_ON_SHOW_MORE = 20;
+
+        const WATCHMODE_SOURCES = [
+            { id: 203, name: "Netflix" },
+            { id: 372, name: "Max" },
+            { id: 157, name: "Hulu" },
+            { id: 387, name: "Disney+" },
+            { id: 26, name: "Amazon Prime Video" }
+        ];
+        let watchModeCategoryData = {};
 
         const desktopSearchInput = document.getElementById('desktopSearchInput');
         const desktopSearchButton = document.getElementById('desktopSearchButton');
@@ -385,19 +415,23 @@
 
         const discoverSection = document.getElementById('discoverSection');
         const contentAreaTitle = document.getElementById('contentAreaTitle');
-        const moviesContainer = document.getElementById('moviesContainer');
-        const tvShowsContainer = document.getElementById('tvShowsContainer');
-        const searchResultsGridContainer = document.getElementById('searchResultsGridContainer');
+        const tmdbMoviesContainer = document.getElementById('tmdbMoviesContainer');
+        const tmdbTvShowsContainer = document.getElementById('tmdbTvShowsContainer');
+        let tmdbMoviesScrollWrapper = document.getElementById('tmdbMoviesScrollWrapper'); 
+        let tmdbTvScrollWrapper = document.getElementById('tmdbTvScrollWrapper'); 
+        
+        const watchmodeCategoriesSection = document.getElementById('watchmodeCategoriesSection');
+        const watchmodeCategoriesGrid = document.getElementById('watchmodeCategoriesGrid');
+
+        const searchResultsSection = document.getElementById('searchResultsSection');
         const searchResultsTitle = document.getElementById('searchResultsTitle');
         const searchResultsGrid = document.getElementById('searchResultsGrid');
         const sortResultsSelect = document.getElementById('sortResultsSelect');
-        const favoritesGridContainer = document.getElementById('favoritesGridContainer');
+        
+        const favoritesSection = document.getElementById('favoritesSection');
+        const favoritesTitle = document.getElementById('favoritesTitle');
         const favoritesGrid = document.getElementById('favoritesGrid');
 
-
-        let moviesScrollWrapper = document.getElementById('moviesScrollWrapper'); 
-        let tvScrollWrapper = document.getElementById('tvScrollWrapper'); 
-        
         const homeLink = document.getElementById('homeLink');
         const mobileMenuButton = document.getElementById('mobileMenuButton');
         const mobileMenu = document.getElementById('mobileMenu');
@@ -406,8 +440,7 @@
         const navDiscoverDesktop = document.getElementById('navDiscoverDesktop');
         const navFavoritesDesktop = document.getElementById('navFavoritesDesktop');
 
-
-        let currentTvShow = { id: null, name: null, season: 1, episode: 1, totalSeasons: 0, episodesInCurrentSeason: [] };
+        let currentTvShow = { id: null, tmdb_id: null, name: null, season: 1, episode: 1, totalSeasons: 0, episodesInCurrentSeason: [] };
         let seasonDetailsCache = {}; 
         let currentSearchFilter = 'multi'; 
         let currentSearchResults = [];
@@ -416,7 +449,6 @@
         let originalHtmlOverflow = ''; 
         let currentInfoModalData = null;
         let isAnyModalOpenForScrollLock = false;
-
 
         function showStatus(message, type = 'info') {
             statusMessage.textContent = message;
@@ -437,31 +469,252 @@
             const proxyUrl = `/api/tmdb-proxy?${proxyUrlParams.toString()}`;
             try {
                 const response = await fetch(proxyUrl);
-                const contentType = response.headers.get("content-type");
                 if (!response.ok) {
-                    let errorPayload = { message: `Proxy API Error: ${response.status} ${response.statusText}`, status: response.status, contentType: contentType };
-                    if (contentType && contentType.includes("application/json")) {
-                        const errorData = await response.json().catch(() => ({}));
-                        errorPayload.details = errorData.error || errorData.details || errorData.message || errorData;
-                    } else {
-                        errorPayload.rawResponse = await response.text().catch(() => "Could not read error response body.");
-                    }
-                    console.error("Proxy Error Payload:", errorPayload);
-                    throw new Error(typeof errorPayload.details === 'string' ? errorPayload.details : errorPayload.message);
+                    const errorData = await response.json().catch(() => ({ message: `TMDB API Error: ${response.status}` }));
+                    throw new Error(errorData.message || `TMDB API Error: ${response.status}`);
                 }
-                if (contentType && contentType.includes("application/json")) {
-                    return await response.json();
-                } else {
-                    const rawText = await response.text().catch(() => "Could not read response body.");
-                    console.error("Expected JSON from proxy, received:", contentType, rawText.substring(0, 200));
-                    throw new Error(`Unexpected content type from proxy: ${contentType}. Expected JSON. Received: ${rawText.substring(0,100)}...`);
-                }
+                return await response.json();
             } catch (error) {
-                console.error('Full error in fetchFromTMDB:', error);
-                showStatus(error.message || "An unknown API error occurred.", 'error');
+                console.error('Error fetching from TMDB Proxy:', error);
+                showStatus(error.message || "An unknown TMDB API error occurred.", 'error');
                 throw error; 
             }
         }
+
+        async function fetchFromWatchModeProxy(endpoint, params = {}) {
+            const proxyUrlParams = new URLSearchParams({ endpoint, ...params });
+            const proxyUrl = `${WATCHMODE_PROXY_URL}?${proxyUrlParams.toString()}`;
+            try {
+                const response = await fetch(proxyUrl);
+                 if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: `WatchMode API Error: ${response.status}` }));
+                    throw new Error(errorData.message || `WatchMode API Error: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching from WatchMode Proxy:', error);
+                throw error;
+            }
+        }
+
+        function createContentCard(item, type, source = 'tmdb') {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            let title, posterPath, id, itemType, year = "";
+
+            if (source === 'tmdb') {
+                title = (item.title || item.name || item.original_name || "Untitled");
+                posterPath = item.poster_path ? `${TMDB_IMG_BASE_URL}${item.poster_path}` : `https://placehold.co/180x270/1f1f1f/e50914?text=${encodeURIComponent(title.substring(0,15))}`;
+                id = item.id;
+                itemType = type;
+                year = item.release_date ? item.release_date.substring(0,4) : (item.first_air_date ? item.first_air_date.substring(0,4) : "");
+            } else if (source === 'watchmode') {
+                title = item.title || "Untitled";
+                posterPath = item.poster || `https://placehold.co/180x270/1f1f1f/e50914?text=${encodeURIComponent(title.substring(0,15))}`;
+                id = item.tmdb_id || item.id;
+                itemType = item.tmdb_type || item.type;
+                if (itemType === 'tv_series') itemType = 'tv';
+                if (itemType === 'short_film') itemType = 'movie';
+                year = item.year || "";
+            }
+
+            const isFav = isFavorite(id, itemType);
+            
+            card.innerHTML = `
+                <img src="${posterPath}" alt="${title} Poster" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/180x270/1f1f1f/e50914?text=No+Poster';">
+                <div class="p-2">
+                    <h4 class="font-semibold truncate text-sm" title="${title}">${title} ${year ? `(${year})` : ''}</h4>
+                    <p class="text-xs text-gray-400">${itemType === 'movie' ? 'Movie' : 'TV Show'}</p>
+                </div>
+                <div class="favorite-icon ${isFav ? 'is-favorite' : ''}" data-id="${id}" data-type="${itemType}" data-title="${title}" data-poster="${source === 'tmdb' ? item.poster_path || '' : ''}">
+                    <i class="${isFav ? 'fas' : 'far'} fa-heart"></i>
+                </div>`;
+            
+            const effectiveId = source === 'watchmode' ? item.tmdb_id : id;
+            const effectiveType = source === 'watchmode' ? (item.tmdb_type === 'tv_series' ? 'tv' : item.tmdb_type) : itemType;
+
+            if (effectiveId && effectiveType) {
+                 card.querySelector('img').addEventListener('click', () => openInfoModal(effectiveId, effectiveType));
+                 card.querySelector('h4').addEventListener('click', () => openInfoModal(effectiveId, effectiveType));
+            }
+
+            const favIconEl = card.querySelector('.favorite-icon');
+            favIconEl.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                const favData = {
+                    id: parseInt(favIconEl.dataset.id),
+                    type: favIconEl.dataset.type,
+                    title: favIconEl.dataset.title, 
+                    poster_path: favIconEl.dataset.poster
+                };
+                toggleFavorite(favData, favIconEl); 
+            });
+            return card;
+        }
+        
+        async function loadTopRatedTMDBContent() {
+            showStatus(''); 
+            
+            if (!tmdbMoviesScrollWrapper || !tmdbTvScrollWrapper) {
+                reinitializeScrollableContent(); 
+                if (!tmdbMoviesScrollWrapper || !tmdbTvScrollWrapper) {
+                    showStatus("UI elements missing for TMDB. Please refresh.", "error"); 
+                    return;
+                }
+            }
+
+            tmdbMoviesScrollWrapper.innerHTML = ''; 
+            tmdbTvScrollWrapper.innerHTML = '';
+            const movieSpinner = createLoadingSpinner(); 
+            const tvSpinner = createLoadingSpinner();
+            tmdbMoviesScrollWrapper.appendChild(movieSpinner); 
+            tmdbTvScrollWrapper.appendChild(tvSpinner);
+            updateSpecificScrollButtons(tmdbMoviesScrollWrapper); 
+            updateSpecificScrollButtons(tmdbTvScrollWrapper);
+
+            try {
+                const [moviesData, tvData] = await Promise.all([
+                    fetchFromTMDB('movie/top_rated'), 
+                    fetchFromTMDB('tv/top_rated')
+                ]);
+
+                tmdbMoviesScrollWrapper.innerHTML = '';
+                if (moviesData && moviesData.results && moviesData.results.length > 0) {
+                    moviesData.results.forEach(movie => tmdbMoviesScrollWrapper.appendChild(createContentCard(movie, 'movie', 'tmdb')));
+                } else { 
+                    tmdbMoviesScrollWrapper.innerHTML = '<p class="p-4 text-gray-400">Could not load top rated movies.</p>'; 
+                }
+                updateSpecificScrollButtons(tmdbMoviesScrollWrapper);
+
+                tmdbTvScrollWrapper.innerHTML = '';
+                if (tvData && tvData.results && tvData.results.length > 0) {
+                    tvData.results.forEach(tvShow => tmdbTvScrollWrapper.appendChild(createContentCard(tvShow, 'tv', 'tmdb')));
+                } else { 
+                    tmdbTvScrollWrapper.innerHTML = '<p class="p-4 text-gray-400">Could not load top rated TV shows.</p>'; 
+                }
+                updateSpecificScrollButtons(tmdbTvScrollWrapper);
+            } catch (error) {
+                if (tmdbMoviesScrollWrapper.contains(movieSpinner)) {
+                    tmdbMoviesScrollWrapper.innerHTML = `<p class="p-4 text-red-400">Error loading TMDB movies.</p>`;
+                }
+                if (tmdbTvScrollWrapper.contains(tvSpinner)) {
+                    tmdbTvScrollWrapper.innerHTML = `<p class="p-4 text-red-400">Error loading TMDB TV shows.</p>`;
+                }
+            }
+            updateAllFavoriteIcons();
+        }
+
+        async function loadStreamingServiceCategories() {
+            if (!watchmodeCategoriesGrid) {
+                return;
+            }
+            watchmodeCategoriesGrid.innerHTML = ''; 
+            watchModeCategoryData = {}; 
+
+            for (const source of WATCHMODE_SOURCES) {
+                const categoryId = `watchmode-source-${source.id}`;
+                const categoryDiv = document.createElement('div');
+                categoryDiv.id = categoryId;
+                categoryDiv.className = 'mb-10 category-container';
+                categoryDiv.innerHTML = `
+                    <h3 class="text-2xl font-semibold mb-4">${source.name}</h3>
+                    <div class="horizontal-scroll-container">
+                        <button class="scroll-button prev" data-target="${categoryId}-scroll"><i class="fas fa-chevron-left"></i></button>
+                        <div id="${categoryId}-scroll" class="scroll-wrapper flex space-x-4">
+                        </div>
+                        <button class="scroll-button next" data-target="${categoryId}-scroll"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="text-center mt-2">
+                        <button class="btn-show-more" data-source-id="${source.id}" data-page="1">Show More</button>
+                    </div>
+                `;
+                watchmodeCategoriesGrid.appendChild(categoryDiv);
+                const scrollWrapper = document.getElementById(`${categoryId}-scroll`);
+                scrollWrapper.innerHTML = ''; 
+                const spinner = createLoadingSpinner();
+                scrollWrapper.appendChild(spinner); 
+                updateSpecificScrollButtons(scrollWrapper);
+
+                try {
+                    const params = {
+                        source_ids: source.id,
+                        types: "movie,tv_series", 
+                        sort_by: "popularity_desc",
+                        limit: 50 
+                    };
+                    const data = await fetchFromWatchModeProxy('list-titles', params);
+                    
+                    scrollWrapper.innerHTML = ''; 
+                    if (data && data.titles && data.titles.length > 0) {
+                        watchModeCategoryData[source.id] = {
+                            titles: data.titles,
+                            shownCount: 0,
+                            sourceName: source.name
+                        };
+                        displayWatchModeTitles(source.id, scrollWrapper);
+                    } else {
+                        scrollWrapper.innerHTML = `<p class="p-4 text-gray-400">No titles found for ${source.name} currently.</p>`;
+                        const showMoreButton = categoryDiv.querySelector('.btn-show-more');
+                        if(showMoreButton) showMoreButton.style.display = 'none';
+                    }
+                } catch (error) {
+                    if (scrollWrapper.contains(spinner)) {
+                        scrollWrapper.innerHTML = `<p class="p-4 text-red-400">Error loading titles for ${source.name}. Please try again later.</p>`;
+                    }
+                    const showMoreButton = categoryDiv.querySelector('.btn-show-more');
+                    if(showMoreButton) showMoreButton.style.display = 'none';
+                }
+            }
+            reinitializeScrollableContent(); 
+        }
+
+        function displayWatchModeTitles(sourceId, scrollWrapperElement, loadMore = false) {
+            const category = watchModeCategoryData[sourceId];
+            if (!category) return;
+
+            const titlesToShow = category.titles.slice(category.shownCount, category.shownCount + (loadMore ? WATCHMODE_ITEMS_TO_LOAD_ON_SHOW_MORE : WATCHMODE_ITEMS_PER_PAGE));
+            
+            titlesToShow.forEach(title => {
+                const cardItem = {
+                    id: title.id,
+                    title: title.title,
+                    year: title.year,
+                    type: title.type,
+                    poster: title.poster,
+                    imdb_id: title.imdb_id,
+                    tmdb_id: title.tmdb_id,
+                    tmdb_type: title.tmdb_type
+                };
+                scrollWrapperElement.appendChild(createContentCard(cardItem, cardItem.type, 'watchmode'));
+            });
+
+            category.shownCount += titlesToShow.length;
+            updateSpecificScrollButtons(scrollWrapperElement);
+            updateAllFavoriteIcons();
+
+            const showMoreButton = document.querySelector(`.btn-show-more[data-source-id="${sourceId}"]`);
+            if (showMoreButton) {
+                if (category.shownCount >= category.titles.length) {
+                    showMoreButton.textContent = "No More Results";
+                    showMoreButton.disabled = true;
+                } else {
+                    showMoreButton.textContent = "Show More";
+                    showMoreButton.disabled = false;
+                }
+            }
+        }
+        
+        watchmodeCategoriesGrid.addEventListener('click', function(event) {
+            if (event.target.classList.contains('btn-show-more') && !event.target.disabled) {
+                const sourceId = event.target.dataset.sourceId;
+                const scrollWrapperId = `watchmode-source-${sourceId}-scroll`;
+                const scrollWrapper = document.getElementById(scrollWrapperId);
+                if (scrollWrapper) {
+                    displayWatchModeTitles(sourceId, scrollWrapper, true);
+                }
+            }
+        });
 
         function sortAndDisplayResults() {
             let resultsToDisplay = [...currentSearchResults];
@@ -488,17 +741,16 @@
                 return;
             }
             resultsToDisplay.forEach(item => {
-                 searchResultsGrid.appendChild(createContentCard(item, item.media_type));
+                 searchResultsGrid.appendChild(createContentCard(item, item.media_type, 'tmdb'));
             });
             updateAllFavoriteIcons();
         }
 
         function displaySearchResultsUI(results, query) {
-            moviesContainer.classList.add('hidden');
-            tvShowsContainer.classList.add('hidden');
-            favoritesGridContainer.classList.add('hidden');
-            contentAreaTitle.classList.add('hidden');
-            searchResultsGridContainer.classList.remove('hidden');
+            discoverSection.classList.add('hidden');
+            watchmodeCategoriesSection.classList.add('hidden');
+            favoritesSection.classList.add('hidden');
+            searchResultsSection.classList.remove('hidden');
             searchResultsTitle.textContent = `Search Results for "${query}"`;
 
             let processedResults = results.map(item => {
@@ -522,11 +774,12 @@
             if (!query) return;
             currentSearchQuery = query; 
             showStatus('');
-            contentAreaTitle.classList.add('hidden');
-            moviesContainer.classList.add('hidden');
-            tvShowsContainer.classList.add('hidden');
-            favoritesGridContainer.classList.add('hidden');
-            searchResultsGridContainer.classList.remove('hidden');
+
+            discoverSection.classList.add('hidden');
+            watchmodeCategoriesSection.classList.add('hidden');
+            favoritesSection.classList.add('hidden');
+            searchResultsSection.classList.remove('hidden');
+            
             searchResultsTitle.textContent = `Searching for "${query}"...`;
             searchResultsGrid.innerHTML = '';
             searchResultsGrid.appendChild(createLoadingSpinner());
@@ -544,95 +797,105 @@
             }
         }
         
-        async function loadTopRatedContent() {
+        function loadFavorites() {
             showStatus('');
-            contentAreaTitle.textContent = "Top Rated";
-            contentAreaTitle.classList.remove('hidden');
-            moviesContainer.classList.remove('hidden');
-            tvShowsContainer.classList.remove('hidden');
-            searchResultsGridContainer.classList.add('hidden');
-            favoritesGridContainer.classList.add('hidden');
-            searchResultsGrid.innerHTML = '';
+            discoverSection.classList.add('hidden');
+            watchmodeCategoriesSection.classList.add('hidden');
+            searchResultsSection.classList.add('hidden');
+            favoritesSection.classList.remove('hidden');
+            favoritesGrid.innerHTML = '';
+
             document.querySelectorAll('.nav-link.active').forEach(l => l.classList.remove('active'));
-            navDiscoverDesktop.classList.add('active');
-            navDiscoverMobile.classList.add('active');
+            navFavoritesDesktop.classList.add('active');
+            if(navFavoritesMobile) navFavoritesMobile.classList.add('active');
 
-
-            if (!moviesScrollWrapper || !tvScrollWrapper) {
-                reinitializeScrollableContent(); 
-                if (!moviesScrollWrapper || !tvScrollWrapper) { 
-                     showStatus("UI elements missing. Please refresh.", "error"); return;
-                }
+            const favorites = getFavorites();
+            if (favorites.length === 0) {
+                favoritesGrid.innerHTML = '<p class="col-span-full text-center text-gray-400">You have no favorites yet. Add some!</p>';
+                return;
             }
-            moviesScrollWrapper.innerHTML = ''; tvScrollWrapper.innerHTML = '';
-            const movieSpinner = createLoadingSpinner(); const tvSpinner = createLoadingSpinner();
-            moviesScrollWrapper.appendChild(movieSpinner); tvScrollWrapper.appendChild(tvSpinner);
-            updateScrollButtons(moviesScrollWrapper); updateScrollButtons(tvScrollWrapper);
-
-            try {
-                const [moviesData, tvData] = await Promise.all([
-                    fetchFromTMDB('movie/top_rated'), fetchFromTMDB('tv/top_rated')
-                ]);
-                moviesScrollWrapper.innerHTML = '';
-                if (moviesData.results && moviesData.results.length > 0) {
-                    moviesData.results.forEach(movie => moviesScrollWrapper.appendChild(createContentCard(movie, 'movie')));
-                } else { moviesScrollWrapper.innerHTML = '<p class="p-4">Could not load top rated movies.</p>'; }
-                updateScrollButtons(moviesScrollWrapper);
-
-                tvScrollWrapper.innerHTML = '';
-                if (tvData.results && tvData.results.length > 0) {
-                    tvData.results.forEach(tvShow => tvScrollWrapper.appendChild(createContentCard(tvShow, 'tv')));
-                } else { tvScrollWrapper.innerHTML = '<p class="p-4">Could not load top rated TV shows.</p>'; }
-                updateScrollButtons(tvScrollWrapper);
-            } catch (error) {
-                 if (!moviesScrollWrapper.hasChildNodes() || moviesScrollWrapper.firstChild.classList.contains('loading-spinner')) {
-                    moviesScrollWrapper.innerHTML = `<p class="p-4 text-red-400">Error loading movies.</p>`;
-                 }
-                 if (!tvScrollWrapper.hasChildNodes() || tvScrollWrapper.firstChild.classList.contains('loading-spinner')) {
-                    tvScrollWrapper.innerHTML = `<p class="p-4 text-red-400">Error loading TV shows.</p>`;
-                 }
-            }
-            updateAllFavoriteIcons();
+            favorites.forEach(fav => {
+                favoritesGrid.appendChild(createContentCard(fav, fav.type, 'tmdb'));
+            });
+            updateAllFavoriteIcons(); 
         }
 
-        function createContentCard(item, type) {
-            const card = document.createElement('div'); card.className = 'card';
-            const title = (item.title || item.name || item.original_name || "Untitled");
-            const posterPath = item.poster_path ? `${TMDB_IMG_BASE_URL}${item.poster_path}` : 'https://placehold.co/180x270/1f1f1f/e50914?text=No+Poster';
-            const isFav = isFavorite(item.id, type);
-            
-            card.innerHTML = `
-                <img src="${posterPath}" alt="${title} Poster" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/180x270/1f1f1f/e50914?text=Error';">
-                <div class="p-2">
-                    <h4 class="font-semibold truncate text-sm" title="${title}">${title}</h4>
-                    <p class="text-xs text-gray-400">${type === 'movie' ? 'Movie' : 'TV Show'}</p>
-                </div>
-                <div class="favorite-icon ${isFav ? 'is-favorite' : ''}" data-id="${item.id}" data-type="${type}" data-title="${title}" data-poster="${item.poster_path || ''}">
-                    <i class="${isFav ? 'fas' : 'far'} fa-heart"></i>
-                </div>`;
-            
-            card.querySelector('img').addEventListener('click', () => openInfoModal(item.id, type));
-            card.querySelector('h4').addEventListener('click', () => openInfoModal(item.id, type));
-            card.querySelector('.favorite-icon').addEventListener('click', (e) => {
-                e.stopPropagation(); 
-                const favIconContainer = e.currentTarget;
-                const favData = {
-                    id: parseInt(favIconContainer.dataset.id),
-                    type: favIconContainer.dataset.type,
-                    title: favIconContainer.dataset.title, 
-                    poster_path: favIconContainer.dataset.poster
-                };
-                toggleFavorite(favData, favIconContainer); 
-            });
-            return card;
+        function getFavorites() { return JSON.parse(localStorage.getItem('skyeMovieFavorites')) || []; }
+        function saveFavorites(favorites) {
+            localStorage.setItem('skyeMovieFavorites', JSON.stringify(favorites));
+            updateAllFavoriteIcons(); 
+        }
+        function isFavorite(id, type) {
+            const favorites = getFavorites();
+            return favorites.some(fav => fav.id === parseInt(id) && fav.type === type);
+        }
+        function addToFavorites(item) {
+            const favorites = getFavorites();
+            if (!isFavorite(item.id, item.type)) {
+                favorites.push({
+                    id: parseInt(item.id), 
+                    type: item.type, 
+                    title: item.title || item.name || "Untitled", 
+                    poster_path: item.poster_path || ''
+                });
+                saveFavorites(favorites);
+            }
+        }
+        function removeFromFavorites(id, type) {
+            let favorites = getFavorites();
+            favorites = favorites.filter(fav => !(fav.id === parseInt(id) && fav.type === type));
+            saveFavorites(favorites);
+        }
+        function toggleFavorite(itemData, iconContainerElement) { 
+            const favObject = {
+                id: parseInt(itemData.id),
+                type: itemData.type,
+                title: itemData.title,
+                poster_path: itemData.poster_path
+            };
+
+            const iconElement = iconContainerElement ? iconContainerElement.querySelector('i') : null;
+
+            if (isFavorite(favObject.id, favObject.type)) {
+                removeFromFavorites(favObject.id, favObject.type);
+                if(iconElement) {
+                    iconElement.classList.remove('fas'); iconElement.classList.add('far');
+                }
+                if(iconContainerElement) iconContainerElement.classList.remove('is-favorite');
+            } else {
+                addToFavorites(favObject);
+                if(iconElement) {
+                    iconElement.classList.remove('far'); iconElement.classList.add('fas');
+                }
+                 if(iconContainerElement) iconContainerElement.classList.add('is-favorite');
+            }
+            updateInfoModalFavoriteButton(favObject.id, favObject.type); 
+            if (!favoritesSection.classList.contains('hidden')) {
+                loadFavorites();
+            }
         }
         
-        async function openInfoModal(id, type) {
+        function updateAllFavoriteIcons() {
+            document.querySelectorAll('.favorite-icon').forEach(iconContainerEl => {
+                const id = parseInt(iconContainerEl.dataset.id);
+                const type = iconContainerEl.dataset.type;
+                const icon = iconContainerEl.querySelector('i');
+                if (isFavorite(id, type)) {
+                    icon.classList.remove('far'); icon.classList.add('fas');
+                    iconContainerEl.classList.add('is-favorite');
+                } else {
+                    icon.classList.remove('fas'); icon.classList.add('far');
+                    iconContainerEl.classList.remove('is-favorite');
+                }
+            });
+        }
+        
+        async function openInfoModal(tmdbId, type) {
             showStatus("Loading details...", "info");
             try {
-                const details = await fetchFromTMDB(`${type}/${id}`);
+                const details = await fetchFromTMDB(`${type}/${tmdbId}`);
                 showStatus("");
-                currentInfoModalData = { ...details, type: type, id: id }; 
+                currentInfoModalData = { ...details, type: type, id: tmdbId }; 
 
                 infoModalTitle.textContent = details.title || details.name || "Details";
                 infoModalPoster.src = details.poster_path ? `${TMDB_IMG_BASE_URL}${details.poster_path}` : 'https://placehold.co/150x225/1f1f1f/e50914?text=No+Poster';
@@ -641,11 +904,12 @@
                 infoModalGenres.textContent = details.genres && details.genres.length > 0 ? details.genres.map(g => g.name).join(', ') : "N/A";
                 infoModalOverview.textContent = details.overview || "No overview available.";
 
-                updateInfoModalFavoriteButton(id, type);
+                updateInfoModalFavoriteButton(tmdbId, type);
 
                 if (type === 'tv') {
                     infoModalTvControls.classList.remove('hidden');
-                    currentTvShow.id = id; 
+                    currentTvShow.id = null;
+                    currentTvShow.tmdb_id = tmdbId; 
                     currentTvShow.name = details.name || details.original_name;
                     currentTvShow.season = 1; 
                     currentTvShow.episode = 1; 
@@ -657,7 +921,7 @@
                     populateDropdown(infoModalSeasonSelect, validSeasons, 'season_number', 'name', 'S');
                     if (validSeasons.length > 0) {
                         infoModalSeasonSelect.value = currentTvShow.season; 
-                        await fetchEpisodesForInfoModalSeason(id, currentTvShow.season);
+                        await fetchEpisodesForInfoModalSeason(tmdbId, currentTvShow.season);
                     } else {
                         infoModalSeasonSelect.innerHTML = '<option>N/A</option>';
                         infoModalEpisodeSelect.innerHTML = '<option>N/A</option>';
@@ -671,13 +935,13 @@
             }
         }
 
-        async function fetchEpisodesForInfoModalSeason(tvId, seasonNumber) {
+        async function fetchEpisodesForInfoModalSeason(tmdbTvId, seasonNumber) {
             infoModalEpisodeSelect.disabled = true; infoModalEpisodeSelect.innerHTML = '<option>Loading...</option>';
-            const cacheKey = `${tvId}-${seasonNumber}-info`; 
+            const cacheKey = `tmdb-${tmdbTvId}-${seasonNumber}-info`; 
             try {
                 let seasonDetails;
                 if (seasonDetailsCache[cacheKey]) seasonDetails = seasonDetailsCache[cacheKey];
-                else { seasonDetails = await fetchFromTMDB(`tv/${tvId}/season/${seasonNumber}`); seasonDetailsCache[cacheKey] = seasonDetails; }
+                else { seasonDetails = await fetchFromTMDB(`tv/${tmdbTvId}/season/${seasonNumber}`); seasonDetailsCache[cacheKey] = seasonDetails; }
                 
                 const episodes = seasonDetails.episodes || [];
                 populateDropdown(infoModalEpisodeSelect, episodes, 'episode_number', 'name', 'E');
@@ -701,18 +965,34 @@
             currentTvShow.episode = parseInt(infoModalEpisodeSelect.value);
         });
 
+        infoModalFavoriteButton.addEventListener('click', () => {
+            if (currentInfoModalData) {
+                toggleFavorite(currentInfoModalData);
+            }
+        });
+
+        function updateInfoModalFavoriteButton(id, type) {
+            if (infoModal.style.display === 'block' && currentInfoModalData && parseInt(currentInfoModalData.id) === parseInt(id) && currentInfoModalData.type === type) {
+                if (isFavorite(id, type)) {
+                    infoModalFavoriteButton.innerHTML = '<i class="fas fa-heart mr-2"></i>Remove from Favorites';
+                    infoModalFavoriteButton.classList.add('is-favorite'); 
+                } else {
+                    infoModalFavoriteButton.innerHTML = '<i class="far fa-heart mr-2"></i>Add to Favorites';
+                    infoModalFavoriteButton.classList.remove('is-favorite');
+                }
+            }
+        }
+
         infoModalPlayButton.addEventListener('click', () => {
             if (!currentInfoModalData) return;
-            
-            const playData = { ...currentInfoModalData }; 
-
+            const playData = { ...currentInfoModalData };
             closeModal(infoModal); 
             
             setTimeout(() => {
                 if (playData.type === 'movie') {
                     playMovie(playData.id, playData.title || playData.original_name);
                 } else if (playData.type === 'tv') {
-                    currentTvShow.id = playData.id;
+                    currentTvShow.tmdb_id = playData.id;
                     currentTvShow.name = playData.name || playData.original_name;
                     currentTvShow.season = parseInt(infoModalSeasonSelect.value) || 1;
                     currentTvShow.episode = parseInt(infoModalEpisodeSelect.value) || 1;
@@ -723,38 +1003,60 @@
         });
         
         async function updateAndShowTVControlsInPlayerModal() { 
-            if (!currentTvShow.id) { modalTvControls.classList.add('hidden'); return; }
+            if (!currentTvShow.tmdb_id) { modalTvControls.classList.add('hidden'); return; }
             modalTvShowTitleEl.textContent = currentTvShow.name || 'Selected TV Show';
             modalTvControls.classList.remove('hidden');
             modalSeasonSelect.disabled = true; modalEpisodeSelect.disabled = true;
             modalSeasonSelect.innerHTML = '<option>Loading...</option>'; modalEpisodeSelect.innerHTML = '<option>Loading...</option>';
             nextEpisodeButton.disabled = true;
             try {
-                const tvDetails = await fetchFromTMDB(`tv/${currentTvShow.id}`);
+                const tvDetails = await fetchFromTMDB(`tv/${currentTvShow.tmdb_id}`);
                 currentTvShow.totalSeasons = tvDetails.number_of_seasons;
                 let validSeasons = tvDetails.seasons.filter(s => s.season_number > 0 && s.episode_count > 0);
                 if (validSeasons.length === 0 && tvDetails.seasons.length > 0) validSeasons = tvDetails.seasons.filter(s => s.episode_count > 0); 
                 populateDropdown(modalSeasonSelect, validSeasons, 'season_number', 'name', 'S');
-                if (validSeasons.find(s => s.season_number === currentTvShow.season)) modalSeasonSelect.value = currentTvShow.season;
-                else if (validSeasons.length > 0) { currentTvShow.season = validSeasons[0].season_number; modalSeasonSelect.value = currentTvShow.season; }
+                
+                const seasonToSelect = validSeasons.find(s => s.season_number === currentTvShow.season) ? currentTvShow.season : (validSeasons.length > 0 ? validSeasons[0].season_number : null);
+                if (seasonToSelect !== null) {
+                    modalSeasonSelect.value = seasonToSelect;
+                    currentTvShow.season = seasonToSelect;
+                } else {
+                     modalSeasonSelect.innerHTML = '<option>N/A</option>';
+                }
                 modalSeasonSelect.disabled = false;
-                await fetchEpisodesForPlayerModalSeason(currentTvShow.id, currentTvShow.season); 
-            } catch (error) { modalSeasonSelect.innerHTML = '<option>Error</option>'; modalEpisodeSelect.innerHTML = '<option>Error</option>'; }
+                await fetchEpisodesForPlayerModalSeason(currentTvShow.tmdb_id, currentTvShow.season); 
+            } catch (error) { 
+                modalSeasonSelect.innerHTML = '<option>Error</option>'; 
+                modalEpisodeSelect.innerHTML = '<option>Error</option>'; 
+                console.error("Error updating TV controls in player modal:", error);
+            }
         }
         
-        async function fetchEpisodesForPlayerModalSeason(tvId, seasonNumber) { 
+        async function fetchEpisodesForPlayerModalSeason(tmdbTvId, seasonNumber) { 
             modalEpisodeSelect.disabled = true; modalEpisodeSelect.innerHTML = '<option>Loading...</option>';
-            nextEpisodeButton.disabled = true; const cacheKey = `${tvId}-${seasonNumber}-player`; 
+            nextEpisodeButton.disabled = true; 
+            const cacheKey = `tmdb-${tmdbTvId}-${seasonNumber}-player`; 
             try {
                 let seasonDetails;
                 if (seasonDetailsCache[cacheKey]) seasonDetails = seasonDetailsCache[cacheKey];
-                else { seasonDetails = await fetchFromTMDB(`tv/${tvId}/season/${seasonNumber}`); seasonDetailsCache[cacheKey] = seasonDetails; }
+                else { seasonDetails = await fetchFromTMDB(`tv/${tmdbTvId}/season/${seasonNumber}`); seasonDetailsCache[cacheKey] = seasonDetails; }
                 currentTvShow.episodesInCurrentSeason = seasonDetails.episodes || [];
                 populateDropdown(modalEpisodeSelect, currentTvShow.episodesInCurrentSeason, 'episode_number', 'name', 'E');
-                if (currentTvShow.episodesInCurrentSeason.find(ep => ep.episode_number === currentTvShow.episode)) modalEpisodeSelect.value = currentTvShow.episode;
-                else if (currentTvShow.episodesInCurrentSeason.length > 0) { currentTvShow.episode = currentTvShow.episodesInCurrentSeason[0].episode_number; modalEpisodeSelect.value = currentTvShow.episode; }
-                modalEpisodeSelect.disabled = false; updateNextEpisodeButtonState();
-            } catch (error) { modalEpisodeSelect.innerHTML = '<option>Error</option>'; }
+                
+                const episodeToSelect = currentTvShow.episodesInCurrentSeason.find(ep => ep.episode_number === currentTvShow.episode) ? currentTvShow.episode : (currentTvShow.episodesInCurrentSeason.length > 0 ? currentTvShow.episodesInCurrentSeason[0].episode_number : null);
+
+                if (episodeToSelect !== null) {
+                    modalEpisodeSelect.value = episodeToSelect;
+                    currentTvShow.episode = episodeToSelect;
+                } else {
+                     modalEpisodeSelect.innerHTML = '<option>N/A</option>';
+                }
+                modalEpisodeSelect.disabled = false; 
+                updateNextEpisodeButtonState();
+            } catch (error) { 
+                modalEpisodeSelect.innerHTML = '<option>Error</option>'; 
+                console.error("Error fetching episodes for player modal season:", error);
+            }
         }
 
         function populateDropdown(selectEl, items, valueKey, textKey, prefix = '') {
@@ -762,31 +1064,33 @@
             if (!items || items.length === 0) { selectEl.innerHTML = `<option value="">N/A</option>`; return; }
             items.forEach(item => {
                 const option = document.createElement('option'); option.value = item[valueKey];
-                option.textContent = `${prefix}${item[valueKey]}${item[textKey] && item[textKey] !== `Episode ${item[valueKey]}` ? `: ${item[textKey]}` : ''}`;
+                option.textContent = `${prefix}${item[valueKey]}${item[textKey] && item[textKey] !== `Episode ${item[valueKey]}` && item[textKey] !== `Season ${item[valueKey]}` ? `: ${item[textKey]}` : ''}`;
                 selectEl.appendChild(option);
             });
         }
 
         function updateNextEpisodeButtonState() {
-            if (!currentTvShow.id || currentTvShow.episodesInCurrentSeason.length === 0) { nextEpisodeButton.disabled = true; return; }
+            if (!currentTvShow.tmdb_id || currentTvShow.episodesInCurrentSeason.length === 0) { nextEpisodeButton.disabled = true; return; }
             const currentEpisodeIndex = currentTvShow.episodesInCurrentSeason.findIndex(ep => ep.episode_number === currentTvShow.episode);
             const isLastEpisodeInSeason = currentEpisodeIndex === currentTvShow.episodesInCurrentSeason.length - 1;
             const isLastSeason = currentTvShow.season === currentTvShow.totalSeasons;
             nextEpisodeButton.disabled = isLastEpisodeInSeason && isLastSeason;
         }
         
-        function playMovie(id, title) {
+        function playMovie(tmdbMovieId, title) {
             modalTvControls.classList.add('hidden'); 
-            const embedURL = `${ANYEMBED_BASE_URL}/movie/${id}?server=${DEFAULT_SERVER}`;
-            playerModalTitle.textContent = title || 'Movie'; loadPlayer(embedURL);
+            const playerProxyUrl = `${PLAYER_PROXY_URL}?video_id=${tmdbMovieId}&tmdb=1&autoplay=1`;
+            playerModalTitle.textContent = title || 'Movie'; 
+            loadPlayer(playerProxyUrl);
         }
 
         function playTvShow() {
-            if (!currentTvShow.id) return;
+            if (!currentTvShow.tmdb_id) return;
             modalTvControls.classList.remove('hidden'); 
-            const embedURL = `${ANYEMBED_BASE_URL}/tv/${currentTvShow.id}/${currentTvShow.season}/${currentTvShow.episode}?server=${DEFAULT_SERVER}`;
+            const playerProxyUrl = `${PLAYER_PROXY_URL}?video_id=${currentTvShow.tmdb_id}&tmdb=1&s=${currentTvShow.season}&e=${currentTvShow.episode}&autoplay=1`;
             playerModalTitle.textContent = `${currentTvShow.name || 'TV Show'} (S${currentTvShow.season} E${currentTvShow.episode})`;
-            loadPlayer(embedURL); updateNextEpisodeButtonState(); 
+            loadPlayer(playerProxyUrl); 
+            updateNextEpisodeButtonState(); 
         }
 
         function openModal(modalElement) {
@@ -811,45 +1115,30 @@
                     isAnyModalOpenForScrollLock = false;
                  }
             }
-            
             if (modalElement === playerModal) modalTvControls.classList.add('hidden'); 
         }
 
-        function loadPlayer(url) {
-            playerContainer.innerHTML = ''; // Clear previous player first
-
+        function loadPlayer(proxyUrl) {
+            playerContainer.innerHTML = ''; 
             const iframe = document.createElement('iframe');
-            iframe.src = url;
+            iframe.src = proxyUrl;
             
-            // Sandbox attributes:
-            // "allow-scripts": Essential for the player to run.
-            // "allow-same-origin": Allows the iframe to access its own origin's resources (cookies, storage), often needed for player settings or state.
-            // "allow-forms": If the player uses forms (e.g., search within player, login).
-            // "allow-fullscreen": To allow the player's own fullscreen button to work.
-            // "allow-autoplay": To allow autoplay functionality as intended.
-            // "allow-modals": Allows alert(), confirm(), prompt(). Might be needed by some players for legitimate dialogs (not pop-up ads).
-            // OMITTED for ad-blocking: "allow-popups", "allow-popups-to-escape-sandbox".
-            // OMITTED as less likely essential for basic controls and to simplify: "allow-pointer-lock", "allow-presentation".
-            iframe.setAttribute('sandbox', 'allow-forms allow-scripts allow-same-origin allow-fullscreen allow-autoplay allow-modals');
-            
-            iframe.setAttribute('allow', 'fullscreen; autoplay');
+            iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-fullscreen allow-autoplay allow-presentation allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation');
+            iframe.setAttribute('allow', 'fullscreen; autoplay; encrypted-media; picture-in-picture; popups'); 
             iframe.setAttribute('allowfullscreen', ''); 
-            iframe.style.border = '0'; // Ensure no default border from browser
+            iframe.style.border = '0';
 
             playerContainer.appendChild(iframe);
-            openModal(playerModal);
 
-            setTimeout(() => {
-                // Ensure iframe is still part of the document and contentWindow is accessible (might not be immediately)
-                if (playerContainer.contains(iframe) && iframe.contentWindow) { 
-                    try {
-                        iframe.focus();
-                        // console.log('iframe focused. Active element:', document.activeElement); // For debugging
-                    } catch (e) {
-                        // console.error('Error focusing iframe:', e); // Catch potential cross-origin focus errors
-                    }
+            iframe.onload = function() {
+                if (playerContainer.contains(iframe) && iframe.contentWindow) {
+                    try { iframe.focus(); } catch (e) { }
                 }
-            }, 200); // 200ms delay, adjust if needed, gives iframe time to initialize
+            };
+            iframe.onerror = function() {
+                playerContainer.innerHTML = '<p style="color:red; text-align:center; padding:20px;">Player failed to load. The proxy or embed source may be down.</p>';
+            };
+            openModal(playerModal);
         }
 
         closeInfoModalButton.addEventListener('click', () => closeModal(infoModal));
@@ -879,7 +1168,7 @@
                     setSearchFilter(filterType, desktopSearchFilters); 
                     setSearchFilter(filterType, mobileSearchFilters);
                     const query = desktopSearchInput.value.trim() || mobileSearchInput.value.trim();
-                    if (searchResultsGridContainer.classList.contains('hidden') === false && query) { 
+                    if (!searchResultsSection.classList.contains('hidden') && query) { 
                         executeSearch(query);
                     }
                 }
@@ -890,222 +1179,160 @@
         desktopSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') executeSearch(desktopSearchInput.value.trim()); });
         mobileSearchButton.addEventListener('click', () => { 
             const query = mobileSearchInput.value.trim();
-            if (query) { executeSearch(query); mobileMenu.classList.add('hidden');}
+            if (query) { executeSearch(query); if (mobileMenu) mobileMenu.classList.add('hidden');}
         });
         mobileSearchInput.addEventListener('keypress', (e) => { 
             if (e.key === 'Enter') {
                 const query = mobileSearchInput.value.trim();
-                if (query) { executeSearch(query); mobileMenu.classList.add('hidden'); }
+                if (query) { executeSearch(query); if (mobileMenu) mobileMenu.classList.add('hidden'); }
             }
         });
         sortResultsSelect.addEventListener('change', sortAndDisplayResults);
 
         modalSeasonSelect.addEventListener('change', async () => {
-            currentTvShow.season = parseInt(modalSeasonSelect.value); currentTvShow.episode = 1; 
-            await fetchEpisodesForPlayerModalSeason(currentTvShow.id, currentTvShow.season); 
-            // playTvShow will be called by modalEpisodeSelect change if episodes load, or directly if needed after fetch.
-            // For now, assume fetch will lead to episode selection and then play.
-            // If fetchEpisodesForPlayerModalSeason successfully sets an episode and triggers play, this is fine.
-            // Otherwise, explicitly call playTvShow() here after episodes are populated if needed.
-            if(modalEpisodeSelect.options.length > 0 && modalEpisodeSelect.value) {
-                 playTvShow(); // Play if episode is selected
+            currentTvShow.season = parseInt(modalSeasonSelect.value); 
+            currentTvShow.episode = 1;
+            await fetchEpisodesForPlayerModalSeason(currentTvShow.tmdb_id, currentTvShow.season); 
+            if(modalEpisodeSelect.options.length > 0 && modalEpisodeSelect.value && parseInt(modalEpisodeSelect.value) > 0) {
+                 playTvShow(); 
             }
         });
         modalEpisodeSelect.addEventListener('change', () => { 
-            currentTvShow.episode = parseInt(modalEpisodeSelect.value); playTvShow(); 
+            currentTvShow.episode = parseInt(modalEpisodeSelect.value); 
+            if (currentTvShow.episode > 0) playTvShow(); 
         });
         nextEpisodeButton.addEventListener('click', async () => {
-            if (!currentTvShow.id || nextEpisodeButton.disabled) return;
+            if (!currentTvShow.tmdb_id || nextEpisodeButton.disabled) return;
             const currentEpisodeIndex = currentTvShow.episodesInCurrentSeason.findIndex(ep => ep.episode_number === currentTvShow.episode);
-            if (currentEpisodeIndex < currentTvShow.episodesInCurrentSeason.length - 1) {
+            if (currentEpisodeIndex !== -1 && currentEpisodeIndex < currentTvShow.episodesInCurrentSeason.length - 1) {
                 currentTvShow.episode = currentTvShow.episodesInCurrentSeason[currentEpisodeIndex + 1].episode_number;
-                modalEpisodeSelect.value = currentTvShow.episode; // This will trigger its change event and playTvShow
+                modalEpisodeSelect.value = currentTvShow.episode;
             } else if (currentTvShow.season < currentTvShow.totalSeasons) {
-                currentTvShow.season++; currentTvShow.episode = 1; 
-                modalSeasonSelect.value = currentTvShow.season; // This will trigger its change event
+                currentTvShow.season++; 
+                currentTvShow.episode = 1;
+                modalSeasonSelect.value = currentTvShow.season;
             }
         });
 
         function reinitializeScrollableContent() {
-            moviesScrollWrapper = document.getElementById('moviesScrollWrapper');
-            tvScrollWrapper = document.getElementById('tvScrollWrapper');
-            document.querySelectorAll('.scroll-button').forEach(button => {
+            tmdbMoviesScrollWrapper = document.getElementById('tmdbMoviesScrollWrapper');
+            tmdbTvScrollWrapper = document.getElementById('tmdbTvScrollWrapper');
+            const tmdbScrollButtons = document.querySelectorAll('#tmdbMoviesContainer .scroll-button, #tmdbTvShowsContainer .scroll-button');
+            tmdbScrollButtons.forEach(button => {
                 button.removeEventListener('click', handleScrollButtonClick); 
                 button.addEventListener('click', handleScrollButtonClick);
             });
-             if(moviesScrollWrapper) {
-                moviesScrollWrapper.removeEventListener('scroll', updateMoviesScrollButtons);
-                moviesScrollWrapper.addEventListener('scroll', updateMoviesScrollButtons, { passive: true });
-                updateScrollButtons(moviesScrollWrapper);
-             }
-             if(tvScrollWrapper) {
-                tvScrollWrapper.removeEventListener('scroll', updateTvScrollButtons);
-                tvScrollWrapper.addEventListener('scroll', updateTvScrollButtons, { passive: true });
-                updateScrollButtons(tvScrollWrapper); 
-             }
-        }
-        function updateMoviesScrollButtons() { if (moviesScrollWrapper) updateScrollButtons(moviesScrollWrapper); }
-        function updateTvScrollButtons() { if (tvScrollWrapper) updateScrollButtons(tvScrollWrapper); }
-        
-        homeLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            desktopSearchInput.value = ''; mobileSearchInput.value = '';
-            loadTopRatedContent(); 
-        });
-        
-        mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
-        navDiscoverMobile.addEventListener('click', (e) => { e.preventDefault(); mobileMenu.classList.add('hidden'); homeLink.click(); });
-        navFavoritesMobile.addEventListener('click', (e) => { e.preventDefault(); mobileMenu.classList.add('hidden'); loadFavorites(); });
-        navDiscoverDesktop.addEventListener('click', (e) => { e.preventDefault(); loadTopRatedContent(); });
-        navFavoritesDesktop.addEventListener('click', (e) => { e.preventDefault(); loadFavorites(); });
+            if(tmdbMoviesScrollWrapper) {
+                tmdbMoviesScrollWrapper.removeEventListener('scroll', updateSpecificScrollButtons);
+                tmdbMoviesScrollWrapper.addEventListener('scroll', () => updateSpecificScrollButtons(tmdbMoviesScrollWrapper), { passive: true });
+                updateSpecificScrollButtons(tmdbMoviesScrollWrapper);
+            }
+            if(tmdbTvScrollWrapper) {
+                tmdbTvScrollWrapper.removeEventListener('scroll', updateSpecificScrollButtons);
+                tmdbTvScrollWrapper.addEventListener('scroll', () => updateSpecificScrollButtons(tmdbTvScrollWrapper), { passive: true });
+                updateSpecificScrollButtons(tmdbTvScrollWrapper);
+            }
 
-
-        function handleScrollButtonClick(event) {
-            const button = event.currentTarget; const targetId = button.dataset.target;
-            const scrollWrapper = document.getElementById(targetId); if (!scrollWrapper) return;
-            const scrollAmount = scrollWrapper.clientWidth * 0.8; 
-            if (button.classList.contains('next')) scrollWrapper.scrollLeft += scrollAmount;
-            else if (button.classList.contains('prev')) scrollWrapper.scrollLeft -= scrollAmount;
+            document.querySelectorAll('#watchmodeCategoriesGrid .horizontal-scroll-container').forEach(container => {
+                const scrollWrapper = container.querySelector('.scroll-wrapper');
+                const scrollButtons = container.querySelectorAll('.scroll-button');
+                if (scrollWrapper) {
+                    scrollButtons.forEach(button => {
+                        button.removeEventListener('click', handleScrollButtonClick);
+                        button.addEventListener('click', handleScrollButtonClick);
+                    });
+                    scrollWrapper.removeEventListener('scroll', updateSpecificScrollButtons);
+                    scrollWrapper.addEventListener('scroll', () => updateSpecificScrollButtons(scrollWrapper), { passive: true });
+                    updateSpecificScrollButtons(scrollWrapper);
+                }
+            });
         }
-         function updateScrollButtons(scrollWrapper) {
+        
+        function updateSpecificScrollButtons(scrollWrapper) {
             if (!scrollWrapper || !scrollWrapper.parentElement) return;
             const prevButton = scrollWrapper.parentElement.querySelector('.scroll-button.prev');
             const nextButton = scrollWrapper.parentElement.querySelector('.scroll-button.next');
             if(!prevButton || !nextButton) return;
-            const isScrollable = scrollWrapper.scrollWidth > scrollWrapper.clientWidth + 1; // Added +1 for small fractional diffs
-            if (!isScrollable) { prevButton.style.display = 'none'; nextButton.style.display = 'none'; return; }
-            prevButton.style.display = 'block'; nextButton.style.display = 'block';
+            
+            const isScrollable = scrollWrapper.scrollWidth > scrollWrapper.clientWidth + 1; 
+            
+            if (!isScrollable) {
+                prevButton.style.display = 'none';
+                nextButton.style.display = 'none';
+                return;
+            }
+            prevButton.style.display = 'block';
+            nextButton.style.display = 'block';
+            
             prevButton.disabled = scrollWrapper.scrollLeft <= 0;
             nextButton.disabled = scrollWrapper.scrollLeft + scrollWrapper.clientWidth >= scrollWrapper.scrollWidth - 5; 
         }
-
-        function getFavorites() {
-            return JSON.parse(localStorage.getItem('skyeMovieFavorites')) || [];
-        }
-        function saveFavorites(favorites) {
-            localStorage.setItem('skyeMovieFavorites', JSON.stringify(favorites));
-            updateAllFavoriteIcons(); 
-        }
-        function isFavorite(id, type) {
-            const favorites = getFavorites();
-            return favorites.some(fav => fav.id === parseInt(id) && fav.type === type);
-        }
-        function addToFavorites(item) {
-            const favorites = getFavorites();
-            if (!isFavorite(item.id, item.type)) {
-                 const titleToStore = item.title || item.name || "Untitled";
-                favorites.push({id: parseInt(item.id), type: item.type, title: titleToStore, poster_path: item.poster_path });
-                saveFavorites(favorites);
-            }
-        }
-        function removeFromFavorites(id, type) {
-            let favorites = getFavorites();
-            favorites = favorites.filter(fav => !(fav.id === parseInt(id) && fav.type === type));
-            saveFavorites(favorites);
-        }
-        function toggleFavorite(itemData, iconContainerElement) { 
-            const titleToStore = itemData.title || itemData.name || "Untitled";
-            const favObject = {
-                id: parseInt(itemData.id),
-                type: itemData.type,
-                title: titleToStore,
-                poster_path: itemData.poster_path
-            };
-
-            const iconElement = iconContainerElement ? iconContainerElement.querySelector('i') : null;
-
-            if (isFavorite(favObject.id, favObject.type)) {
-                removeFromFavorites(favObject.id, favObject.type);
-                if(iconElement) {
-                    iconElement.classList.remove('fas'); 
-                    iconElement.classList.add('far');
-                }
-                if(iconContainerElement) iconContainerElement.classList.remove('is-favorite');
-
-            } else {
-                addToFavorites(favObject);
-                if(iconElement) {
-                    iconElement.classList.remove('far');
-                    iconElement.classList.add('fas');
-                }
-                 if(iconContainerElement) iconContainerElement.classList.add('is-favorite');
-            }
-            updateInfoModalFavoriteButton(favObject.id, favObject.type); 
-            if (!favoritesGridContainer.classList.contains('hidden')) {
-                loadFavorites();
-            }
+        
+        function handleScrollButtonClick(event) {
+            const button = event.currentTarget; 
+            const targetId = button.dataset.target;
+            const scrollWrapper = document.getElementById(targetId); 
+            if (!scrollWrapper) return;
+            const scrollAmount = scrollWrapper.clientWidth * 0.8; 
+            if (button.classList.contains('next')) scrollWrapper.scrollLeft += scrollAmount;
+            else if (button.classList.contains('prev')) scrollWrapper.scrollLeft -= scrollAmount;
         }
         
-        infoModalFavoriteButton.addEventListener('click', () => {
-            if (currentInfoModalData) {
-                const favData = {
-                    id: currentInfoModalData.id,
-                    type: currentInfoModalData.type,
-                    title: currentInfoModalData.title || currentInfoModalData.name,
-                    poster_path: currentInfoModalData.poster_path
-                };
-                toggleFavorite(favData); 
-            }
+        homeLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            desktopSearchInput.value = ''; mobileSearchInput.value = '';
+            showDiscoverView();
         });
-
-        function updateInfoModalFavoriteButton(id, type) {
-            if (infoModal.style.display === 'block' && currentInfoModalData && parseInt(currentInfoModalData.id) === parseInt(id) && currentInfoModalData.type === type) {
-                if (isFavorite(id, type)) {
-                    infoModalFavoriteButton.innerHTML = '<i class="fas fa-heart mr-2"></i>Remove from Favorites';
-                    infoModalFavoriteButton.classList.add('is-favorite'); 
-                } else {
-                    infoModalFavoriteButton.innerHTML = '<i class="far fa-heart mr-2"></i>Add to Favorites';
-                    infoModalFavoriteButton.classList.remove('is-favorite');
-                }
-            }
-        }
         
-        function updateAllFavoriteIcons() {
-            document.querySelectorAll('.favorite-icon').forEach(iconContainerEl => {
-                const id = parseInt(iconContainerEl.dataset.id);
-                const type = iconContainerEl.dataset.type;
-                const icon = iconContainerEl.querySelector('i');
-                if (isFavorite(id, type)) {
-                    icon.classList.remove('far');
-                    icon.classList.add('fas');
-                    iconContainerEl.classList.add('is-favorite');
-                } else {
-                    icon.classList.remove('fas');
-                    icon.classList.add('far');
-                    iconContainerEl.classList.remove('is-favorite');
-                }
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+        }
+        if (navDiscoverMobile) {
+            navDiscoverMobile.addEventListener('click', (e) => { 
+                e.preventDefault(); 
+                if (mobileMenu) mobileMenu.classList.add('hidden'); 
+                showDiscoverView(); 
             });
         }
+        if (navFavoritesMobile) {
+            navFavoritesMobile.addEventListener('click', (e) => { 
+                e.preventDefault(); 
+                if (mobileMenu) mobileMenu.classList.add('hidden'); 
+                loadFavorites(); 
+            });
+        }
+        navDiscoverDesktop.addEventListener('click', (e) => { e.preventDefault(); showDiscoverView(); });
+        navFavoritesDesktop.addEventListener('click', (e) => { e.preventDefault(); loadFavorites(); });
 
+        function showDiscoverView() {
+            showStatus('');
+            contentAreaTitle.textContent = "Discover";
+            discoverSection.classList.remove('hidden');
+            watchmodeCategoriesSection.classList.remove('hidden');
+            searchResultsSection.classList.add('hidden');
+            favoritesSection.classList.add('hidden');
 
-        function loadFavorites() {
-            contentAreaTitle.classList.add('hidden');
-            moviesContainer.classList.add('hidden');
-            tvShowsContainer.classList.add('hidden');
-            searchResultsGridContainer.classList.add('hidden');
-            favoritesGridContainer.classList.remove('hidden');
-            favoritesGrid.innerHTML = '';
             document.querySelectorAll('.nav-link.active').forEach(l => l.classList.remove('active'));
-            navFavoritesDesktop.classList.add('active');
-            navFavoritesMobile.classList.add('active');
+            navDiscoverDesktop.classList.add('active');
+            if (navDiscoverMobile) navDiscoverMobile.classList.add('active');
+            
+            let tmdbContentLoaded = tmdbMoviesScrollWrapper && tmdbMoviesScrollWrapper.children.length > 0 && !(tmdbMoviesScrollWrapper.firstChild && tmdbMoviesScrollWrapper.firstChild.classList.contains('loading-spinner'));
+            let watchmodeContentLoaded = watchmodeCategoriesGrid && watchmodeCategoriesGrid.children.length > 0 && !(watchmodeCategoriesGrid.firstChild && watchmodeCategoriesGrid.firstChild.querySelector('.loading-spinner'));
 
-
-            const favorites = getFavorites();
-            if (favorites.length === 0) {
-                favoritesGrid.innerHTML = '<p class="col-span-full text-center text-gray-400">You have no favorites yet. Add some!</p>';
-                return;
+            if (!tmdbContentLoaded) {
+                loadTopRatedTMDBContent();
             }
-            favorites.forEach(fav => {
-                favoritesGrid.appendChild(createContentCard(fav, fav.type));
-            });
-            updateAllFavoriteIcons(); 
+            if (!watchmodeContentLoaded) {
+                 loadStreamingServiceCategories();
+            }
         }
 
-
-        document.getElementById('currentYear').textContent = new Date().getFullYear();
-        reinitializeScrollableContent(); 
-        loadTopRatedContent();
-        updateAllFavoriteIcons(); 
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            showDiscoverView();
+            reinitializeScrollableContent();
+            updateAllFavoriteIcons(); 
+        });
 
     </script>
 </body>
